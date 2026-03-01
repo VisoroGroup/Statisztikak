@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        BigInt   @id
+  name      String   @db.VarChar(255)
+  status    OrgStatus @default(active)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  users              User[]
+  statisticGroups    StatisticGroup[]
+  statistics         Statistic[]
+  statisticValues    StatisticValue[]
+  statisticConditions StatisticCondition[]
+
+  @@map("organizations")
+}
+
+enum OrgStatus {
+  active
+  inactive
+}
+
+model User {
+  id             Int          @id @default(autoincrement())
+  organizationId BigInt       @map("organization_id")
+  email          String       @unique @db.VarChar(255)
+  password       String       @db.VarChar(255)
+  name           String       @db.VarChar(255)
+  role           UserRole     @default(user)
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  responsibleFor Statistic[]  @relation("ResponsiblePerson")
+  authoredValues StatisticValue[] @relation("ValueAuthor")
+  createdQuotas  StatisticQuota[] @relation("QuotaCreator")
+  conditions     StatisticCondition[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  admin
+  user
+}
+
+model StatisticGroup {
+  id             Int          @id @default(autoincrement())
+  organizationId BigInt       @map("organization_id")
+  name           String       @db.VarChar(100)
+  displayOrder   Int          @default(0) @map("display_order")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  assignments    StatisticGroupAssignment[]
+
+  @@map("statistic_groups")
+}
+
+model Statistic {
+  id                  Int              @id @default(autoincrement())
+  organizationId      BigInt           @map("organization_id")
+  title               String           @db.VarChar(255)
+  description         String?          @db.Text
+  aggregationType     AggregationType  @default(daily) @map("aggregation_type")
+  measurementType     MeasurementType  @default(numeric) @map("measurement_type")
+  displayOrder        Int              @default(0) @map("display_order")
+  responsiblePersonId Int?             @map("responsible_person_id")
+  viabilityThreshold  Decimal?         @db.Decimal(15, 2) @map("viability_threshold")
+  isInverted          Boolean          @default(false) @map("is_inverted")
+  axisMode            AxisMode         @default(auto) @map("axis_mode")
+  axisMin             Decimal?         @db.Decimal(15, 2) @map("axis_min")
+  axisMax             Decimal?         @db.Decimal(15, 2) @map("axis_max")
+  workDays            Json             @default("{\"mon\":true,\"tue\":true,\"wed\":true,\"thu\":true,\"fri\":true,\"sat\":false,\"sun\":false}") @map("work_days")
+  graphType           GraphType        @default(normal) @map("graph_type")
+  formula             String?          @db.Text
+  apiKey              String?          @unique @db.VarChar(50) @map("api_key")
+  status              StatStatus       @default(active)
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  organization        Organization     @relation(fields: [organizationId], references: [id])
+  responsiblePerson   User?            @relation("ResponsiblePerson", fields: [responsiblePersonId], references: [id])
+
+  groupAssignments    StatisticGroupAssignment[]
+  values              StatisticValue[]
+  quotas              StatisticQuota[]
+  conditions          StatisticCondition[]
+
+  @@map("statistics")
+}
+
+enum AggregationType {
+  daily
+  weekly
+  monthly
+  quarterly
+  yearly
+}
+
+enum MeasurementType {
+  numeric
+  currency
+  percentage
+}
+
+enum AxisMode {
+  auto
+  manual
+}
+
+enum GraphType {
+  normal
+  formula
+}
+
+enum StatStatus {
+  active
+  archived
+}
+
+model StatisticGroupAssignment {
+  statisticId Int @map("statistic_id")
+  groupId     Int @map("group_id")
+
+  statistic   Statistic      @relation(fields: [statisticId], references: [id], onDelete: Cascade)
+  group       StatisticGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@id([statisticId, groupId])
+  @@map("statistic_group_assignments")
+}
+
+model StatisticValue {
+  id             BigInt       @id @default(autoincrement())
+  statisticId    Int          @map("statistic_id")
+  organizationId BigInt       @map("organization_id")
+  recordDate     DateTime     @db.Date @map("record_date")
+  value          Decimal      @db.Decimal(15, 2)
+  authorId       Int?         @map("author_id")
+  authorType     AuthorType   @default(user) @map("author_type")
+  note           String?      @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  statistic      Statistic    @relation(fields: [statisticId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  author         User?        @relation("ValueAuthor", fields: [authorId], references: [id])
+
+  @@unique([statisticId, recordDate])
+  @@map("statistic_values")
+}
+
+enum AuthorType {
+  user
+  system
+  api
+}
+
+model StatisticQuota {
+  id          Int      @id @default(autoincrement())
+  statisticId Int      @map("statistic_id")
+  periodStart DateTime @db.Date @map("period_start")
+  periodEnd   DateTime @db.Date @map("period_end")
+  quotaValue  Decimal  @db.Decimal(15, 2) @map("quota_value")
+  createdById Int      @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  statistic   Statistic @relation(fields: [statisticId], references: [id], onDelete: Cascade)
+  createdBy   User      @relation("QuotaCreator", fields: [createdById], references: [id])
+
+  @@map("statistic_quotas")
+}
+
+model StatisticCondition {
+  id             Int            @id @default(autoincrement())
+  organizationId BigInt         @map("organization_id")
+  userId         Int            @map("user_id")
+  statisticId    Int?           @map("statistic_id")
+  conditionType  ConditionType  @map("condition_type")
+  conditionDate  DateTime       @db.Date @map("condition_date")
+  createdAt      DateTime       @default(now()) @map("created_at")
+
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  user           User           @relation(fields: [userId], references: [id])
+  statistic      Statistic?     @relation(fields: [statisticId], references: [id], onDelete: SetNull)
+
+  @@map("statistic_conditions")
+}
+
+enum ConditionType {
+  power              @map("power")
+  power_change       @map("power_change")
+  affluence          @map("affluence")
+  normal             @map("normal")
+  emergency          @map("emergency")
+  danger             @map("danger")
+  personal_danger    @map("personal_danger")
+  non_existence      @map("non_existence")
+  extended_non_existence @map("extended_non_existence")
+}

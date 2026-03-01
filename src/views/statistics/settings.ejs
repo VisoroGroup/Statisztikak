@@ -1,0 +1,256 @@
+<div class="mt-4 mb-4">
+    <a href="/<%= orgId %>/statistics<%= !isNew ? '/detail-graph/' + statistic.id : '' %>"
+        class="btn btn-sm btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Vissza
+    </a>
+
+    <h2>
+        <%= isNew ? 'Új Statisztika' : 'Beállítások — ' + statistic.title %>
+    </h2>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <form action="/<%= orgId %>/statistics/<%= isNew ? 'create-graph' : 'update-graph/' + statistic.id %>"
+                method="POST">
+
+                <!-- Basic Info -->
+                <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Alap adatok</h5>
+
+                <div class="row g-3">
+                    <div class="col-md-8">
+                        <label class="form-label">Cím <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="title"
+                            value="<%= statistic ? statistic.title : '' %>" required minlength="3">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Beosztási sorrend</label>
+                        <input type="number" class="form-control" name="display_order"
+                            value="<%= statistic ? statistic.displayOrder : 0 %>">
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-12">
+                        <label class="form-label">Leírás</label>
+                        <textarea class="form-control" name="description"
+                            rows="2"><%= statistic ? (statistic.description || '') : '' %></textarea>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-4">
+                        <label class="form-label">Aggregáció típusa</label>
+                        <select class="form-select" name="aggregation_type">
+                            <% ['daily','weekly','monthly','quarterly','yearly'].forEach(t=> { %>
+                                <option value="<%= t %>" <%=statistic && statistic.aggregationType===t ? 'selected' : ''
+                                    %>>
+                                    <%= t==='daily' ? 'Napi' : t==='weekly' ? 'Heti' : t==='monthly' ? 'Havi' :
+                                        t==='quarterly' ? 'Negyedéves' : 'Éves' %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Személy neve</label>
+                        <select class="form-select" name="responsible_person_id">
+                            <option value="">— Nincs —</option>
+                            <% users.forEach(u=> { %>
+                                <option value="<%= u.id %>" <%=statistic && statistic.responsiblePersonId===u.id
+                                    ? 'selected' : '' %>>
+                                    <%= u.name %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Mérési típus</label>
+                        <div class="mt-1">
+                            <% ['currency','percentage','numeric'].forEach(t=> { %>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="measurement_type"
+                                        value="<%= t %>" id="mt_<%= t %>" <%=(!statistic && t==='numeric' ) ||
+                                        (statistic && statistic.measurementType===t) ? 'checked' : '' %>>
+                                    <label class="form-check-label" for="mt_<%= t %>">
+                                        <%= t==='currency' ? 'Pénznem' : t==='percentage' ? 'Százalék' : 'Számozás' %>
+                                    </label>
+                                </div>
+                                <% }); %>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Groups -->
+                <h5 class="mb-3"><i class="bi bi-collection me-2"></i>Csoportok</h5>
+                <div class="row g-2">
+                    <% groups.forEach(g=> { %>
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="groups" value="<%= g.id %>"
+                                    id="group_<%= g.id %>" <%=statistic && statistic.groupAssignments &&
+                                    statistic.groupAssignments.some(a=> a.groupId === g.id) ? 'checked' : '' %>>
+                                <label class="form-check-label" for="group_<%= g.id %>">
+                                    <%= g.name %>
+                                </label>
+                            </div>
+                        </div>
+                        <% }); %>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Advanced Settings -->
+                <h5 class="mb-3"><i class="bi bi-sliders me-2"></i>Haladó beállítások</h5>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Életképesség határvonala</label>
+                        <input type="number" step="0.01" class="form-control" name="viability_threshold"
+                            value="<%= statistic && statistic.viabilityThreshold ? statistic.viabilityThreshold : '' %>"
+                            placeholder="Opcionális">
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-check mt-4">
+                            <input class="form-check-input" type="checkbox" name="is_inverted" id="isInverted"
+                                <%=statistic && statistic.isInverted ? 'checked' : '' %>>
+                            <label class="form-check-label" for="isInverted">Fordított grafikon (alacsonyabb =
+                                jobb)</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-1">
+                    <div class="col-md-4">
+                        <label class="form-label">Tengely mód</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="axis_mode" value="auto" id="axisAuto"
+                                    <%=!statistic || statistic.axisMode==='auto' ? 'checked' : '' %>
+                                onchange="toggleAxisInputs()">
+                                <label class="form-check-label" for="axisAuto">Auto</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="axis_mode" value="manual"
+                                    id="axisManual" <%=statistic && statistic.axisMode==='manual' ? 'checked' : '' %>
+                                onchange="toggleAxisInputs()">
+                                <label class="form-check-label" for="axisManual">Egyéni</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 axis-inputs"
+                        style="<%= !statistic || statistic.axisMode !== 'manual' ? 'display:none' : '' %>">
+                        <label class="form-label">Tengely felső érték</label>
+                        <input type="number" step="0.01" class="form-control" name="axis_max"
+                            value="<%= statistic && statistic.axisMax ? statistic.axisMax : '' %>">
+                    </div>
+                    <div class="col-md-4 axis-inputs"
+                        style="<%= !statistic || statistic.axisMode !== 'manual' ? 'display:none' : '' %>">
+                        <label class="form-label">Tengely alsó érték</label>
+                        <input type="number" step="0.01" class="form-control" name="axis_min"
+                            value="<%= statistic && statistic.axisMin ? statistic.axisMin : '' %>">
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Work Days -->
+                <h5 class="mb-3"><i class="bi bi-calendar-week me-2"></i>Munkanapok</h5>
+                <div class="d-flex flex-wrap gap-3">
+                    <% const
+                        dayLabels={mon:'Hétfő',tue:'Kedd',wed:'Szerda',thu:'Csütörtök',fri:'Péntek',sat:'Szombat',sun:'Vasárnap'};
+                        const defaultDays={mon:true,tue:true,wed:true,thu:true,fri:true,sat:false,sun:false}; const
+                        workDays=statistic ? (typeof statistic.workDays==='string' ? JSON.parse(statistic.workDays) :
+                        statistic.workDays) : defaultDays; %>
+                        <% Object.entries(dayLabels).forEach(([key, label])=> { %>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="work_<%= key %>"
+                                    id="wd_<%= key %>" <%=workDays[key] ? 'checked' : '' %>>
+                                <label class="form-check-label" for="wd_<%= key %>">
+                                    <%= label %>
+                                </label>
+                            </div>
+                            <% }); %>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Graph Type -->
+                <h5 class="mb-3"><i class="bi bi-graph-up me-2"></i>Grafikon típusa</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="graph_type" value="normal" id="gtNormal"
+                                <%=!statistic || statistic.graphType==='normal' ? 'checked' : '' %>
+                            onchange="toggleFormula()">
+                            <label class="form-check-label" for="gtNormal">Normál grafikon</label>
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="radio" name="graph_type" value="formula"
+                                id="gtFormula" <%=statistic && statistic.graphType==='formula' ? 'checked' : '' %>
+                            onchange="toggleFormula()">
+                            <label class="form-check-label" for="gtFormula">Egyenlet-grafikon (formula)</label>
+                        </div>
+                    </div>
+                    <div class="col-md-8 formula-input"
+                        style="<%= !statistic || statistic.graphType !== 'formula' ? 'display:none' : '' %>">
+                        <label class="form-label">Formula</label>
+                        <textarea class="form-control" name="formula" rows="2"
+                            placeholder="Matematikai képlet..."><%= statistic && statistic.formula ? statistic.formula : '' %></textarea>
+                    </div>
+                </div>
+
+                <% if (!isNew && statistic) { %>
+                    <hr class="my-4">
+                    <h5 class="mb-3"><i class="bi bi-key me-2"></i>API Azonosító</h5>
+                    <div class="input-group" style="max-width: 400px;">
+                        <input type="text" class="form-control" value="<%= statistic.apiKey || 'Nincs generálva' %>"
+                            readonly>
+                        <span class="input-group-text"><i class="bi bi-clipboard"></i></span>
+                    </div>
+                    <% } %>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-lg me-1"></i>
+                                <%= isNew ? 'Létrehozás' : 'Mentés' %>
+                            </button>
+                            <% if (!isNew) { %>
+                                <button type="button" class="btn btn-outline-danger btn-lg" onclick="deleteStatistic()">
+                                    <i class="bi bi-trash me-1"></i>Törlés
+                                </button>
+                                <% } %>
+                        </div>
+            </form>
+
+            <% if (!isNew) { %>
+                <form id="deleteForm" action="/<%= orgId %>/statistics/delete-graph/<%= statistic.id %>" method="POST"
+                    style="display:none;"></form>
+                <% } %>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleAxisInputs() {
+        const manual = document.getElementById('axisManual').checked;
+        document.querySelectorAll('.axis-inputs').forEach(el => {
+            el.style.display = manual ? '' : 'none';
+        });
+    }
+
+    function toggleFormula() {
+        const formula = document.getElementById('gtFormula').checked;
+        document.querySelectorAll('.formula-input').forEach(el => {
+            el.style.display = formula ? '' : 'none';
+        });
+    }
+
+    function deleteStatistic() {
+        if (confirm('Biztosan törli ezt a statisztikát? Ez a művelet nem visszavonható!')) {
+            document.getElementById('deleteForm').submit();
+        }
+    }
+</script>

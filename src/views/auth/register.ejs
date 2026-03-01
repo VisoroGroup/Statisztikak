@@ -1,0 +1,63 @@
+<div class="auth-card">
+    <div class="auth-header">
+        <i class="bi bi-graph-up-arrow auth-logo"></i>
+        <h1>MAKH</h1>
+        <p class="text-muted">Új fiók létrehozása</p>
+    </div>
+
+    <% if (typeof errors !=='undefined' && errors && errors.length> 0) { %>
+        <% errors.forEach(err=> { %>
+            <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>
+                <%= err.msg %>
+            </div>
+            <% }); %>
+                <% } %>
+
+                    <form action="/register" method="POST">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Teljes név</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="name" name="name"
+                                    value="<%= typeof name !== 'undefined' ? name : '' %>" placeholder="Teljes név"
+                                    required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email cím</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    value="<%= typeof email !== 'undefined' ? email : '' %>"
+                                    placeholder="email@example.com" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Jelszó</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Min. 6 karakter" required minlength="6">
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="password2" class="form-label">Jelszó megerősítése</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
+                                <input type="password" class="form-control" id="password2" name="password2"
+                                    placeholder="Jelszó újra" required minlength="6">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Regisztráció
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <a href="/login" class="text-muted">Már van fiókja? Jelentkezzen be</a>
+                    </div>
+</div>

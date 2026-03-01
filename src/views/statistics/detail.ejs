@@ -1,0 +1,268 @@
+<!-- Header -->
+<div class="detail-header mt-4">
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <a href="/<%= orgId %>/statistics" class="btn btn-sm btn-outline-secondary mb-2">
+                <i class="bi bi-arrow-left me-1"></i>Vissza
+            </a>
+            <h2>
+                <%= statistic.title %>
+            </h2>
+            <% if (statistic.description) { %>
+                <p class="text-muted">
+                    <%= statistic.description %>
+                </p>
+                <% } %>
+                    <% if (statistic.responsiblePerson) { %>
+                        <span class="badge bg-secondary"><i class="bi bi-person me-1"></i>
+                            <%= statistic.responsiblePerson.name %>
+                        </span>
+                        <% } %>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#quotaModal">
+                <i class="bi bi-bullseye me-1"></i>Quota
+            </button>
+            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addValueDetailModal">
+                <i class="bi bi-plus-lg me-1"></i>Érték bevitele
+            </button>
+            <a href="/<%= orgId %>/statistics/update-graph/<%= statistic.id %>"
+                class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-gear me-1"></i>Beállítások
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Section -->
+<div class="card mt-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="detailShowValues" checked>
+                <label class="form-check-label" for="detailShowValues">Értékek Megjelenítés</label>
+            </div>
+            <select class="form-select form-select-sm w-auto" id="viewTypeSelect">
+                <option value="daily" <%=viewType==='daily' ? 'selected' : '' %>>Napi</option>
+                <option value="weekly" <%=viewType==='weekly' ? 'selected' : '' %>>Heti</option>
+                <option value="monthly" <%=viewType==='monthly' ? 'selected' : '' %>>Havi</option>
+                <option value="quarterly" <%=viewType==='quarterly' ? 'selected' : '' %>>Negyedéves</option>
+                <option value="yearly" <%=viewType==='yearly' ? 'selected' : '' %>>Éves</option>
+            </select>
+        </div>
+        <div id="detailChart" style="min-height: 350px;"></div>
+    </div>
+</div>
+
+<!-- Tabs: Values & Notes -->
+<div class="card mt-3 mb-4">
+    <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs" role="tablist">
+            <li class="nav-item">
+                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#valuesTab">
+                    <i class="bi bi-table me-1"></i>Értékek
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notesTab">
+                    <i class="bi bi-chat-left-text me-1"></i>Megjegyzések
+                </button>
+            </li>
+        </ul>
+    </div>
+    <div class="card-body">
+        <div class="tab-content">
+            <!-- Values Tab -->
+            <div class="tab-pane fade show active" id="valuesTab">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="valuesTable">
+                        <thead>
+                            <tr>
+                                <th>Dátum</th>
+                                <th>Érték</th>
+                                <th>Szerző</th>
+                                <th>Változtatás</th>
+                                <th>Összeg</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% if (chartData.tableData && chartData.tableData.length> 0) { %>
+                                <% chartData.tableData.forEach(row=> { %>
+                                    <tr>
+                                        <td>
+                                            <%= row.key %>
+                                        </td>
+                                        <td class="fw-bold">
+                                            <%= row.value.toLocaleString('hu-HU') %>
+                                        </td>
+                                        <td><span class="text-muted">
+                                                <%= row.authorName %>
+                                            </span></td>
+                                        <td>
+                                            <% if (row.changePercent !==null) { %>
+                                                <span
+                                                    class="badge <%= parseFloat(row.changePercent) >= 0 ? 'bg-success' : 'bg-danger' %>">
+                                                    <%= row.changePercentFormatted %>
+                                                </span>
+                                                <% } else { %>
+                                                    <span class="text-muted">N/A</span>
+                                                    <% } %>
+                                        </td>
+                                        <td>
+                                            <%= row.runningTotal.toLocaleString('hu-HU') %>
+                                        </td>
+                                        <td>
+                                            <% if (row.id && user.role==='admin' ) { %>
+                                                <button class="btn btn-sm btn-outline-danger delete-value-btn"
+                                                    data-value-id="<%= row.id %>" title="Törlés">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                                <% } %>
+                                        </td>
+                                    </tr>
+                                    <% }); %>
+                                        <% } else { %>
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted py-4">
+                                                    <i class="bi bi-inbox me-2"></i>Nincs adat. Vigyen be értéket a "+"
+                                                    gombbal.
+                                                </td>
+                                            </tr>
+                                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Notes Tab -->
+            <div class="tab-pane fade" id="notesTab">
+                <form action="/<%= orgId %>/statistics/detail-graph/<%= statistic.id %>" method="POST">
+                    <input type="hidden" name="form_type" value="notes">
+                    <div class="mb-3">
+                        <textarea class="form-control" name="note_text" rows="3"
+                            placeholder="Megjegyzés hozzáadása..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-send me-1"></i>Mentés
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Value Modal -->
+<div class="modal fade" id="addValueDetailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/<%= orgId %>/statistics/detail-graph/<%= statistic.id %>" method="POST">
+                <input type="hidden" name="form_type" value="add_value">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Érték bevitele</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Érték</label>
+                        <input type="number" step="0.01" class="form-control" name="value" required autofocus>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Dátum</label>
+                        <input type="date" class="form-control" name="for_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Ha nem munkanap:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="when_weekend" value="before"
+                                id="wkBefore">
+                            <label class="form-check-label" for="wkBefore">Előtt 07:00AM (előző munkanapra)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="when_weekend" value="after" id="wkAfter"
+                                checked>
+                            <label class="form-check-label" for="wkAfter">Után 07:00AM (következő munkanapra)</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Bevitel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quota Modal -->
+<div class="modal fade" id="quotaModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/<%= orgId %>/statistics/detail-graph/<%= statistic.id %>" method="POST">
+                <input type="hidden" name="form_type" value="quota">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-bullseye me-2"></i>Célérték beállítása</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Célérték</label>
+                        <input type="number" step="0.01" class="form-control" name="quota_value" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Időszak kezdete</label>
+                        <input type="date" class="form-control" name="period_start" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Időszak vége</label>
+                        <input type="date" class="form-control" name="period_end" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Mentés</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const detailStatId = <%= statistic.id %>;
+    const detailOrgId = '<%= orgId %>';
+    const chartLabels = <% - JSON.stringify(chartData.labels) %>;
+    const chartValues = <% - JSON.stringify(chartData.values) %>;
+    const chartTrend = <% - JSON.stringify(chartData.trend) %>;
+    const viabilityThreshold = <%= statistic.viabilityThreshold ?statistic.viabilityThreshold: 'null' %>;
+    const isInverted = <%= statistic.isInverted %>;
+    const measurementType = '<%= statistic.measurementType %>';
+
+    // Set today's date
+    document.querySelectorAll('input[type="date"]').forEach(el => {
+        if (!el.value) el.valueAsDate = new Date();
+    });
+
+    // View type change
+    document.getElementById('viewTypeSelect').addEventListener('change', function () {
+        const url = new URL(window.location);
+        url.searchParams.set('view', this.value);
+        window.location = url;
+    });
+
+    // Delete value
+    document.querySelectorAll('.delete-value-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            if (!confirm('Biztosan törli ezt az értéket?')) return;
+            const valueId = btn.dataset.valueId;
+            try {
+                const res = await fetch('/' + detailOrgId + '/statistics/delete-value/' + valueId, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+                if (res.ok) location.reload();
+            } catch (err) {
+                alert('Hiba a törlés közben.');
+            }
+        });
+    });
+</script>
