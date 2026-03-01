@@ -92,10 +92,12 @@ app.use((req, res, next) => {
 // Routes
 const authRoutes = require('./routes/auth');
 const statisticsRoutes = require('./routes/statistics');
+const conditionsRoutes = require('./routes/conditions');
 const apiRoutes = require('./routes/api');
 
 app.use('/', authRoutes);
 app.use('/', statisticsRoutes);
+app.use('/', conditionsRoutes);
 app.use('/api', apiRoutes);
 
 // Root redirect
