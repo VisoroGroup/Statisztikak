@@ -1,5 +1,5 @@
 /**
- * MAKH Statistics - General UI functionality
+ * Stats Visoro - General UI functionality
  */
 
 document.addEventListener('DOMContentLoaded', () => {

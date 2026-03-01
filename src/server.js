@@ -137,7 +137,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`MAKH Statistics server running on port ${PORT}`);
+  console.log(`Stats Visoro server running on port ${PORT}`);
 });
 
 // Graceful shutdown

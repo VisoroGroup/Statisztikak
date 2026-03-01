@@ -1,5 +1,5 @@
 /**
- * MAKH Statistics - ApexCharts Integration
+ * Stats Visoro - ApexCharts Integration
  */
 
 const ChartManager = {
