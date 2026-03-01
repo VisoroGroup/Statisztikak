@@ -16,9 +16,9 @@ module.exports = {
     },
 
     ensureOrg: (req, res, next) => {
-        const orgId = BigInt(req.params.orgId);
-        if (req.user && req.user.organizationId === orgId) {
-            req.orgId = orgId;
+        const orgId = req.params.orgId;
+        if (req.user && req.user.organizationId.toString() === orgId.toString()) {
+            req.orgId = BigInt(orgId);
             return next();
         }
         req.flash('error', 'Nincs hozzáférése ehhez a szervezethez.');

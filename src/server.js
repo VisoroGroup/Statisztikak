@@ -19,6 +19,9 @@ require('./config/passport')(passport);
 
 const app = express();
 
+// Trust Railway's reverse proxy (needed for secure cookies behind proxy)
+app.set('trust proxy', 1);
+
 // Security & middleware
 app.use(helmet({
   contentSecurityPolicy: {
@@ -62,8 +65,9 @@ const sessionConfig = {
   saveUninitialized: false,
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    secure: process.env.NODE_ENV === 'production',
+    secure: false, // Railway handles HTTPS at proxy level
     httpOnly: true,
+    sameSite: 'lax',
   },
 };
 
@@ -97,7 +101,7 @@ app.use('/api', apiRoutes);
 // Root redirect
 app.get('/', (req, res) => {
   if (req.isAuthenticated()) {
-    res.redirect(`/${req.user.organizationId}/statistics`);
+    res.redirect(`/${req.user.organizationId.toString()}/statistics`);
   } else {
     res.redirect('/login');
   }

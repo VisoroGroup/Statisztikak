@@ -8,7 +8,7 @@ const prisma = require('../config/database');
 // Login page
 router.get('/login', (req, res) => {
     if (req.isAuthenticated()) {
-        return res.redirect(`/${req.user.organizationId}/statistics`);
+        return res.redirect(`/${req.user.organizationId.toString()}/statistics`);
     }
     res.render('auth/login', {
         title: 'Bejelentkezés',
@@ -23,14 +23,14 @@ router.post('/login',
         failureFlash: true,
     }),
     (req, res) => {
-        res.redirect(`/${req.user.organizationId}/statistics`);
+        res.redirect(`/${req.user.organizationId.toString()}/statistics`);
     }
 );
 
 // Register page
 router.get('/register', (req, res) => {
     if (req.isAuthenticated()) {
-        return res.redirect(`/${req.user.organizationId}/statistics`);
+        return res.redirect(`/${req.user.organizationId.toString()}/statistics`);
     }
     res.render('auth/register', {
         title: 'Regisztráció',
