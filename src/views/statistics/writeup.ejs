@@ -1,0 +1,116 @@
+<% if (isPrint) { %>
+    <!-- Print Mode -->
+    <div class="print-content p-4">
+        <div class="text-center mb-4">
+            <img src="/img/logo.png" alt="Stats Visoro" style="width:60px;height:60px;">
+            <h2>
+                <%= org.name %>
+            </h2>
+            <p class="text-muted">
+                <%= condition.user.name %> | <%= new Date(condition.conditionDate).toLocaleDateString('ro-RO') %>
+            </p>
+        </div>
+        <h3 class="mb-3" style="color: <%= CONDITION_COLORS[condition.conditionType] %>">
+            <%= CONDITION_LABELS[condition.conditionType] %> — Formula Write-Up
+        </h3>
+        <% if (condition.statistic) { %>
+            <p><strong>Grafic:</strong>
+                <%= condition.statistic.title %>
+            </p>
+            <% } %>
+                <hr>
+                <% steps.forEach(step=> { %>
+                    <div class="mb-4">
+                        <h5>Pasul <%= step.stepNumber %>.</h5>
+                        <p class="fst-italic">
+                            <%= step.stepText %>
+                        </p>
+                        <div style="border-left:3px solid #2563eb;padding-left:12px;">
+                            <%= answersMap[step.stepNumber] || '—' %>
+                        </div>
+                    </div>
+                    <% }); %>
+                        <p class="text-muted small mt-5">Citate din textele lui L. Ron Hubbard.</p>
+    </div>
+    <script>window.onload = () => window.print();</script>
+    <% } else { %>
+        <!-- Normal Mode -->
+        <div class="mt-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                    <a href="/<%= orgId %>/statistics/conditions" class="btn btn-outline-secondary btn-sm me-2">
+                        <i class="bi bi-arrow-left me-1"></i>Înapoi
+                    </a>
+                    <a href="?print=yes" class="btn btn-outline-secondary btn-sm" target="_blank">
+                        <i class="bi bi-printer me-1"></i>Tipărire
+                    </a>
+                </div>
+            </div>
+
+            <%- include('../partials/flash') %>
+
+                <div class="card mb-4">
+                    <div class="card-header"
+                        style="background: <%= CONDITION_COLORS[condition.conditionType] %>; color: #fff;">
+                        <h4 class="mb-0">
+                            <%= CONDITION_LABELS[condition.conditionType] %> — Formula Write-Up
+                        </h4>
+                        <small>
+                            <%= condition.user.name %> | <%= new
+                                    Date(condition.conditionDate).toLocaleDateString('ro-RO') %>
+                                    <% if (condition.statistic) { %> | Grafic: <%= condition.statistic.title %>
+                                            <% } %>
+                        </small>
+                    </div>
+                    <div class="card-body">
+                        <form action="/<%= orgId %>/statistics/graph-condition/<%= condition.id %>" method="POST">
+                            <% steps.forEach(step=> { %>
+                                <div class="mb-4 p-3 border rounded">
+                                    <h6 class="fw-bold">Pasul <%= step.stepNumber %>.</h6>
+                                    <p class="text-muted fst-italic mb-2">
+                                        <%= step.stepText %>
+                                    </p>
+                                    <textarea class="form-control mb-2" name="answer_<%= step.stepNumber %>" rows="3"
+                                        placeholder="Scrieți răspunsul dvs. aici..."><%= answersMap[step.stepNumber] || '' %></textarea>
+
+                                    <!-- Battleplan link -->
+                                    <div class="d-flex align-items-center gap-2">
+                                        <select class="form-select form-select-sm"
+                                            name="battleplan_<%= step.stepNumber %>" style="max-width:300px;">
+                                            <option value="">Plan de bătălie +</option>
+                                            <% battleplans.forEach(bp=> { %>
+                                                <option value="<%= bp.id %>">
+                                                    <%= bp.title %>
+                                                </option>
+                                                <% }); %>
+                                        </select>
+                                        <% if (linkedMap[step.stepNumber] && linkedMap[step.stepNumber].length> 0) { %>
+                                            <% linkedMap[step.stepNumber].forEach(bp=> { %>
+                                                <span class="badge bg-info"><i class="bi bi-link me-1"></i>
+                                                    <%= bp.title %>
+                                                </span>
+                                                <% }); %>
+                                                    <% } %>
+                                    </div>
+                                </div>
+                                <% }); %>
+
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Când trimiteți această elaborare, superiorul dvs. va primi o notificare.
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary"><i
+                                            class="bi bi-save me-1"></i>Salvare</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card border-secondary">
+                    <div class="card-body">
+                        <small class="text-muted"><i class="bi bi-quote me-1"></i>Citate din textele lui L. Ron
+                            Hubbard.</small>
+                    </div>
+                </div>
+        </div>
+        <% } %>

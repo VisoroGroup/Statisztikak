@@ -20,6 +20,7 @@ model Organization {
   statisticValues    StatisticValue[]
   statisticConditions StatisticCondition[]
   auditLogs          AuditLog[]
+  battleplans        Battleplan[]
 
   @@map("organizations")
 }
@@ -186,13 +187,15 @@ model StatisticCondition {
   organizationId BigInt         @map("organization_id")
   userId         Int            @map("user_id")
   statisticId    Int?           @map("statistic_id")
-  conditionType  ConditionType  @map("condition_type")
+  conditionType  String         @map("condition_type")
   conditionDate  DateTime       @db.Date @map("condition_date")
   createdAt      DateTime       @default(now()) @map("created_at")
 
   organization   Organization   @relation(fields: [organizationId], references: [id])
   user           User           @relation(fields: [userId], references: [id])
   statistic      Statistic?     @relation(fields: [statisticId], references: [id], onDelete: SetNull)
+
+  writeupAnswers WriteupAnswer[]
 
   @@map("statistic_conditions")
 }
@@ -214,14 +217,57 @@ model AuditLog {
   @@map("audit_logs")
 }
 
-enum ConditionType {
-  power              @map("power")
-  power_change       @map("power_change")
-  affluence          @map("affluence")
-  normal             @map("normal")
-  emergency          @map("emergency")
-  danger             @map("danger")
-  personal_danger    @map("personal_danger")
-  non_existence      @map("non_existence")
-  extended_non_existence @map("extended_non_existence")
+// ============== NEW MODELS ==============
+
+model ConditionFormulaStep {
+  id            Int           @id @default(autoincrement())
+  conditionType String        @map("condition_type")
+  stepNumber    Int           @map("step_number")
+  stepText      String        @db.Text @map("step_text")
+  language      String        @default("ro") @db.VarChar(5)
+
+  @@unique([conditionType, stepNumber, language])
+  @@map("condition_formula_steps")
 }
+
+model WriteupAnswer {
+  id          Int      @id @default(autoincrement())
+  conditionId Int      @map("condition_id")
+  stepNumber  Int      @map("step_number")
+  answerText  String   @db.Text @map("answer_text")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  condition   StatisticCondition @relation(fields: [conditionId], references: [id], onDelete: Cascade)
+
+  @@unique([conditionId, stepNumber])
+  @@map("condition_writeup_answers")
+}
+
+model Battleplan {
+  id             Int      @id @default(autoincrement())
+  organizationId BigInt   @map("organization_id")
+  title          String   @db.VarChar(255)
+  description    String?  @db.Text
+  status         String   @default("active") @db.VarChar(20)
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  stepLinks      ConditionStepBattleplan[]
+
+  @@map("battleplans")
+}
+
+model ConditionStepBattleplan {
+  id            Int      @id @default(autoincrement())
+  conditionId   Int      @map("condition_id")
+  stepNumber    Int      @map("step_number")
+  battleplanId  Int      @map("battleplan_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  battleplan    Battleplan @relation(fields: [battleplanId], references: [id], onDelete: Cascade)
+
+  @@map("condition_step_battleplans")
+}
+

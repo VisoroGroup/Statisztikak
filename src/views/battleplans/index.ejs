@@ -1,0 +1,132 @@
+<div class="mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-flag me-2"></i>Plan de bătălie</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newBpModal">
+            <i class="bi bi-plus-lg me-1"></i>Plan nou
+        </button>
+    </div>
+
+    <%- include('../partials/flash') %>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <% if (battleplans.length===0) { %>
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-flag d-block" style="font-size:3rem;opacity:0.3;"></i>
+                        <p class="mt-2">Nu există planuri de bătălie.</p>
+                    </div>
+                    <% } else { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Titlu</th>
+                                        <th>Descriere</th>
+                                        <th>Status</th>
+                                        <th>Creat</th>
+                                        <th class="text-end">Acțiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% battleplans.forEach(bp=> { %>
+                                        <tr>
+                                            <td class="fw-bold">
+                                                <%= bp.title %>
+                                            </td>
+                                            <td class="text-muted">
+                                                <%= bp.description ? bp.description.substring(0, 80) : '—' %>
+                                            </td>
+                                            <td><span
+                                                    class="badge <%= bp.status === 'active' ? 'bg-success' : 'bg-secondary' %>">
+                                                    <%= bp.status==='active' ? 'Activ' : 'Finalizat' %>
+                                                </span></td>
+                                            <td>
+                                                <%= new Date(bp.createdAt).toLocaleDateString('ro-RO') %>
+                                            </td>
+                                            <td class="text-end">
+                                                <button class="btn btn-sm btn-outline-primary edit-bp-btn me-1"
+                                                    data-id="<%= bp.id %>" data-title="<%= bp.title %>"
+                                                    data-desc="<%= bp.description || '' %>"
+                                                    data-status="<%= bp.status %>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <form action="/<%= orgId %>/battleplans/<%= bp.id %>/delete"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('Sigur doriți să ștergeți?')">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i
+                                                            class="bi bi-trash"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
+</div>
+
+<!-- New Battleplan Modal -->
+<div class="modal fade" id="newBpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/<%= orgId %>/battleplans" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Plan nou de bătălie</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Titlu</label><input type="text" class="form-control"
+                            name="title" required></div>
+                    <div class="mb-3"><label class="form-label">Descriere</label><textarea class="form-control"
+                            name="description" rows="3"></textarea></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Închide</button><button type="submit"
+                        class="btn btn-primary">Creare</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Battleplan Modal -->
+<div class="modal fade" id="editBpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editBpForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title">Editare plan</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Titlu</label><input type="text" class="form-control"
+                            name="title" id="editBpTitle" required></div>
+                    <div class="mb-3"><label class="form-label">Descriere</label><textarea class="form-control"
+                            name="description" id="editBpDesc" rows="3"></textarea></div>
+                    <div class="mb-3"><label class="form-label">Status</label>
+                        <select class="form-select" name="status" id="editBpStatus">
+                            <option value="active">Activ</option>
+                            <option value="completed">Finalizat</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Închide</button><button type="submit"
+                        class="btn btn-primary">Salvare</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.edit-bp-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('editBpForm').action = '/<%= orgId %>/battleplans/' + btn.dataset.id + '/edit';
+            document.getElementById('editBpTitle').value = btn.dataset.title;
+            document.getElementById('editBpDesc').value = btn.dataset.desc;
+            document.getElementById('editBpStatus').value = btn.dataset.status;
+            new bootstrap.Modal(document.getElementById('editBpModal')).show();
+        });
+    });
+</script>

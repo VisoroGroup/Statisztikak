@@ -1,121 +1,116 @@
-<!-- Toolbar -->
-<div class="toolbar mt-4 mb-4">
-    <div class="row align-items-center g-3">
-        <div class="col-auto">
-            <h4 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Működési Állapotok</h4>
-        </div>
-        <div class="col-auto">
-            <select class="form-select form-select-sm" onchange="filterConditions();" id="userFilter">
-                <option value="all" <%=currentUser==='all' ? 'selected' : '' %>>Összes felhasználó</option>
-                <% users.forEach(u=> { %>
-                    <option value="<%= u.id %>" <%=currentUser==u.id ? 'selected' : '' %>><%= u.name %>
-                    </option>
-                    <% }); %>
-            </select>
-        </div>
-        <div class="col-auto">
-            <select class="form-select form-select-sm" onchange="filterConditions();" id="graphFilter">
-                <option value="all" <%=currentGraph==='all' ? 'selected' : '' %>>Összes Grafikon</option>
-                <% statistics.forEach(s=> { %>
-                    <option value="<%= s.id %>" <%=currentGraph==s.id ? 'selected' : '' %>><%= s.title %>
-                    </option>
-                    <% }); %>
-            </select>
-        </div>
-        <div class="col-auto ms-auto">
-            <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#newConditionModal">
-                <i class="bi bi-plus-lg me-1"></i>Új állapot
-            </button>
-        </div>
+<div class="mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-speedometer2 me-2"></i>Stări de funcționare</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newConditionModal">
+            <i class="bi bi-plus-lg me-1"></i>Stare nouă
+        </button>
     </div>
-</div>
 
-<!-- Conditions Table -->
-<div class="card mb-4">
-    <div class="card-body p-0">
-        <% if (conditions.length===0) { %>
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-speedometer2 d-block" style="font-size:3rem;opacity:0.3;"></i>
-                <p class="mt-2">Nincs rögzített állapot. Kattintson az "Új állapot" gombra.</p>
-            </div>
-            <% } else { %>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th>Időszak</th>
-                                <th>Működési állapot</th>
-                                <th>Grafikon</th>
-                                <th>Rögzítette</th>
-                                <th class="text-end">Műveletek</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <% conditions.forEach(c=> { %>
-                                <tr>
-                                    <td>
-                                        <%= new Date(c.conditionDate).toLocaleDateString('hu-HU') %>
-                                    </td>
-                                    <td>
-                                        <span class="badge"
-                                            style="background-color: <%= conditionColors[c.conditionType] || '#6b7280' %>;">
-                                            <%= conditionLabels[c.conditionType] || c.conditionType %>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <% if (c.statistic) { %>
-                                            <a href="/<%= orgId %>/statistics/detail-graph/<%= c.statistic.id %>">
-                                                <%= c.statistic.title %>
-                                            </a>
-                                            <% } else { %>
-                                                <span class="text-muted">—</span>
-                                                <% } %>
-                                    </td>
-                                    <td>
-                                        <%= c.user ? c.user.name : '—' %>
-                                    </td>
-                                    <td class="text-end">
-                                        <button class="btn btn-sm btn-outline-primary me-1 edit-condition-btn"
-                                            data-id="<%= c.id %>"
-                                            data-date="<%= new Date(c.conditionDate).toISOString().split('T')[0] %>"
-                                            data-type="<%= c.conditionType %>" data-stat="<%= c.statisticId || '' %>"
-                                            title="Szerkesztés">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <form action="/<%= orgId %>/statistics/conditions/<%= c.id %>/delete"
-                                            method="POST" class="d-inline" onsubmit="return confirm('Biztosan törli?')">
-                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Törlés">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
+    <%- include('../partials/flash') %>
+
+        <!-- Filters -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <form method="GET" class="row g-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Angajat</label>
+                        <select class="form-select" name="user" onchange="this.form.submit()">
+                            <option value="">Eu</option>
+                            <% users.forEach(u=> { %>
+                                <option value="<%= u.id %>" <%=filterUser==u.id ? 'selected' : '' %>><%= u.name %>
+                                </option>
                                 <% }); %>
-                        </tbody>
-                    </table>
-                </div>
-                <% } %>
-    </div>
-</div>
-
-<!-- Hierarchy Reference Card -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Hubbard-féle Működési Állapotok Hierarchiája</h6>
-    </div>
-    <div class="card-body">
-        <div class="d-flex flex-wrap gap-2">
-            <% conditionOrder.forEach((type, idx)=> { %>
-                <span class="badge py-2 px-3"
-                    style="background-color: <%= conditionColors[type] %>; font-size: 0.8rem;">
-                    <%= idx + 1 %>. <%= conditionLabels[type] %>
-                </span>
-                <% }); %>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Grafic</label>
+                        <select class="form-select" name="stat" onchange="this.form.submit()">
+                            <option value="">Toate graficele</option>
+                            <% statistics.forEach(s=> { %>
+                                <option value="<%= s.id %>" <%=filterStat==s.id ? 'selected' : '' %>><%= s.title %>
+                                </option>
+                                <% }); %>
+                        </select>
+                    </div>
+                </form>
+            </div>
         </div>
-        <p class="text-muted mt-2 mb-0" style="font-size:0.8rem;">
-            1 = legjobb (csúcsteljesítmény) → 9 = legrosszabb (tartósan nincs teljesítmény)
-        </p>
-    </div>
+
+        <!-- Hubbard hierarchy reference -->
+        <div class="card mb-3">
+            <div class="card-body p-2">
+                <div class="d-flex flex-wrap gap-2 justify-content-center">
+                    <% CONDITION_ORDER.forEach(key=> { %>
+                        <span class="badge" style="background:<%= CONDITION_COLORS[key] %>; font-size: 0.75rem;">
+                            <%= CONDITION_LABELS[key] %>
+                        </span>
+                        <% }); %>
+                </div>
+            </div>
+        </div>
+
+        <!-- Conditions table -->
+        <div class="card">
+            <div class="card-body p-0">
+                <% if (conditions.length===0) { %>
+                    <div class="text-center text-muted py-5">
+                        <i class="bi bi-speedometer d-block" style="font-size:3rem;opacity:0.3;"></i>
+                        <p class="mt-2">Nu există stări înregistrate.</p>
+                    </div>
+                    <% } else { %>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Angajat</th>
+                                        <th>Stare</th>
+                                        <th>Grafic</th>
+                                        <th class="text-end">Acțiuni</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% conditions.forEach(c=> { %>
+                                        <tr>
+                                            <td>
+                                                <%= new Date(c.conditionDate).toLocaleDateString('ro-RO') %>
+                                            </td>
+                                            <td>
+                                                <%= c.user.name %>
+                                            </td>
+                                            <td><span class="badge"
+                                                    style="background:<%= CONDITION_COLORS[c.conditionType] %>">
+                                                    <%= CONDITION_LABELS[c.conditionType] %>
+                                                </span></td>
+                                            <td>
+                                                <%= c.statistic ? c.statistic.title : '—' %>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="/<%= orgId %>/statistics/graph-condition/<%= c.id %>"
+                                                    class="btn btn-sm btn-outline-primary me-1" title="Write-Up">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <button class="btn btn-sm btn-outline-secondary edit-cond-btn me-1"
+                                                    data-id="<%= c.id %>" data-type="<%= c.conditionType %>"
+                                                    data-date="<%= new Date(c.conditionDate).toISOString().split('T')[0] %>"
+                                                    data-stat="<%= c.statisticId || '' %>">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <form action="/<%= orgId %>/statistics/conditions/<%= c.id %>/delete"
+                                                    method="POST" class="d-inline"
+                                                    onsubmit="return confirm('Sigur doriți să ștergeți?')">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"><i
+                                                            class="bi bi-trash"></i></button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } %>
+            </div>
+        </div>
 </div>
 
 <!-- New Condition Modal -->
@@ -124,30 +119,24 @@
         <div class="modal-content">
             <form action="/<%= orgId %>/statistics/conditions" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Állapot kijelölése</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">Selectare stare</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Dátum</label>
-                        <input type="date" class="form-control" name="condition_date" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Működési állapot</label>
+                    <div class="mb-3"><label class="form-label">Data</label><input type="date" class="form-control"
+                            name="condition_date" required value="<%= new Date().toISOString().split('T')[0] %>"></div>
+                    <div class="mb-3"><label class="form-label">Stare de funcționare</label>
                         <select class="form-select" name="condition_type" required>
-                            <% conditionOrder.forEach(type=> { %>
-                                <option value="<%= type %>">
-                                    <%= conditionLabels[type] %>
+                            <% CONDITION_ORDER.forEach(key=> { %>
+                                <option value="<%= key %>">
+                                    <%= CONDITION_LABELS[key] %>
                                 </option>
                                 <% }); %>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Grafikon (opcionális)</label>
-                        <input type="text" class="form-control" id="graphSearchNew"
-                            placeholder="Keresés statisztika neve szerint..." autocomplete="off">
-                        <select class="form-select mt-2" name="statistic_id" id="graphSelectNew">
-                            <option value="">— Nincs kapcsolódó grafikon —</option>
+                    <div class="mb-3"><label class="form-label">Grafic</label>
+                        <select class="form-select" name="statistic_id">
+                            <option value="">Toate graficele</option>
                             <% statistics.forEach(s=> { %>
                                 <option value="<%= s.id %>">
                                     <%= s.title %>
@@ -156,10 +145,9 @@
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Bevitel</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Închide</button><button type="submit"
+                        class="btn btn-primary">Salvare</button></div>
             </form>
         </div>
     </div>
@@ -169,30 +157,26 @@
 <div class="modal fade" id="editConditionModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form id="editConditionForm" method="POST">
+            <form id="editCondForm" method="POST">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Állapot szerkesztése</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">Editare stare</h5><button type="button" class="btn-close"
+                        data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Dátum</label>
-                        <input type="date" class="form-control" name="condition_date" id="editDate" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Működési állapot</label>
-                        <select class="form-select" name="condition_type" id="editType" required>
-                            <% conditionOrder.forEach(type=> { %>
-                                <option value="<%= type %>">
-                                    <%= conditionLabels[type] %>
+                    <div class="mb-3"><label class="form-label">Data</label><input type="date" class="form-control"
+                            name="condition_date" id="editCondDate" required></div>
+                    <div class="mb-3"><label class="form-label">Stare de funcționare</label>
+                        <select class="form-select" name="condition_type" id="editCondType">
+                            <% CONDITION_ORDER.forEach(key=> { %>
+                                <option value="<%= key %>">
+                                    <%= CONDITION_LABELS[key] %>
                                 </option>
                                 <% }); %>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Grafikon (opcionális)</label>
-                        <select class="form-select" name="statistic_id" id="editStat">
-                            <option value="">— Nincs kapcsolódó grafikon —</option>
+                    <div class="mb-3"><label class="form-label">Grafic</label>
+                        <select class="form-select" name="statistic_id" id="editCondStat">
+                            <option value="">Toate graficele</option>
                             <% statistics.forEach(s=> { %>
                                 <option value="<%= s.id %>">
                                     <%= s.title %>
@@ -201,50 +185,22 @@
                         </select>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Mentés</button>
-                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Închide</button><button type="submit"
+                        class="btn btn-primary">Salvare</button></div>
             </form>
         </div>
     </div>
 </div>
 
 <script>
-    // Set today's date as default
-    document.querySelectorAll('input[type="date"]').forEach(el => {
-        if (!el.value) el.valueAsDate = new Date();
-    });
-
-    // Filter conditions
-    function filterConditions() {
-        const userFilter = document.getElementById('userFilter').value;
-        const graphFilter = document.getElementById('graphFilter').value;
-        const url = new URL(window.location);
-        url.searchParams.set('user_filter', userFilter);
-        url.searchParams.set('graph_filter', graphFilter);
-        window.location = url;
-    }
-
-    // Edit condition
-    document.querySelectorAll('.edit-condition-btn').forEach(btn => {
+    document.querySelectorAll('.edit-cond-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            const id = btn.dataset.id;
-            document.getElementById('editConditionForm').action = '/<%= orgId %>/statistics/conditions/' + id + '/edit';
-            document.getElementById('editDate').value = btn.dataset.date;
-            document.getElementById('editType').value = btn.dataset.type;
-            document.getElementById('editStat').value = btn.dataset.stat;
+            document.getElementById('editCondForm').action = '/<%= orgId %>/statistics/conditions/' + btn.dataset.id + '/edit';
+            document.getElementById('editCondDate').value = btn.dataset.date;
+            document.getElementById('editCondType').value = btn.dataset.type;
+            document.getElementById('editCondStat').value = btn.dataset.stat;
             new bootstrap.Modal(document.getElementById('editConditionModal')).show();
-        });
-    });
-
-    // Graph search filter
-    document.getElementById('graphSearchNew')?.addEventListener('input', function () {
-        const query = this.value.toLowerCase();
-        const select = document.getElementById('graphSelectNew');
-        Array.from(select.options).forEach(opt => {
-            if (opt.value === '') return;
-            opt.style.display = opt.text.toLowerCase().includes(query) ? '' : 'none';
         });
     });
 </script>

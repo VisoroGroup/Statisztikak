@@ -403,3 +403,54 @@ body {
     gap: 1rem;
   }
 }
+
+/* ---- Print Mode ---- */
+@media print {
+
+  .navbar,
+  .btn,
+  .modal,
+  .toolbar,
+  footer,
+  form,
+  .alert,
+  .card-header .btn,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 12pt;
+  }
+
+  .main-content {
+    padding: 0 !important;
+  }
+
+  .container-fluid {
+    padding: 0 !important;
+    max-width: 100%;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .print-content {
+    display: block !important;
+  }
+
+  h2,
+  h3,
+  h4,
+  h5 {
+    page-break-after: avoid;
+  }
+
+  .mb-4 {
+    margin-bottom: 0.5rem !important;
+  }
+}

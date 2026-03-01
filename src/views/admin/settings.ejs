@@ -1,25 +1,16 @@
 <div class="mt-4 mb-4">
-    <h2><i class="bi bi-building me-2"></i>Szervezet beállítások</h2>
-
+    <h2><i class="bi bi-building me-2"></i>Setări organizație</h2>
     <%- include('../partials/flash') %>
-
         <div class="card mt-3">
             <div class="card-body">
                 <form action="/<%= orgId %>/admin/settings" method="POST">
-                    <div class="mb-3">
-                        <label class="form-label">Szervezet neve</label>
-                        <input type="text" class="form-control" name="name" value="<%= org.name %>" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Szervezet ID</label>
-                        <input type="text" class="form-control" value="<%= org.id %>" disabled>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Létrehozva</label>
-                        <input type="text" class="form-control"
-                            value="<%= new Date(org.createdAt).toLocaleString('hu-HU') %>" disabled>
-                    </div>
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Mentés</button>
+                    <div class="mb-3"><label class="form-label">Numele organizației</label><input type="text"
+                            class="form-control" name="name" value="<%= org.name %>" required></div>
+                    <div class="mb-3"><label class="form-label">ID organizație</label><input type="text"
+                            class="form-control" value="<%= org.id %>" disabled></div>
+                    <div class="mb-3"><label class="form-label">Creat la</label><input type="text" class="form-control"
+                            value="<%= new Date(org.createdAt).toLocaleString('ro-RO') %>" disabled></div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Salvare</button>
                 </form>
             </div>
         </div>

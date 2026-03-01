@@ -2,49 +2,23 @@
     <div class="auth-header">
         <img src="/img/logo.png" alt="Stats Visoro" style="width:80px;height:80px;border-radius:12px;" class="mb-2">
         <h1>Stats Visoro</h1>
-        <p class="text-muted">Teljesítménymérő Statisztikák</p>
+        <p class="text-muted">Statistici de performanță</p>
     </div>
 
-    <% if (typeof success_msg !=='undefined' && success_msg && success_msg.length> 0) { %>
-        <% success_msg.forEach(msg=> { %>
-            <div class="alert alert-success"><i class="bi bi-check-circle me-2"></i>
-                <%= msg %>
+    <%- include('../partials/flash') %>
+
+        <form action="/login" method="POST">
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required autofocus>
             </div>
-            <% }); %>
-                <% } %>
-                    <% if (typeof error_msg !=='undefined' && error_msg && error_msg.length> 0) { %>
-                        <% error_msg.forEach(msg=> { %>
-                            <div class="alert alert-danger"><i class="bi bi-exclamation-triangle me-2"></i>
-                                <%= msg %>
-                            </div>
-                            <% }); %>
-                                <% } %>
-
-                                    <form action="/login" method="POST">
-                                        <div class="mb-3">
-                                            <label for="email" class="form-label">Email cím</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                                <input type="email" class="form-control" id="email" name="email"
-                                                    placeholder="email@example.com" required autofocus>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-4">
-                                            <label for="password" class="form-label">Jelszó</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                                <input type="password" class="form-control" id="password"
-                                                    name="password" placeholder="Jelszó" required>
-                                            </div>
-                                        </div>
-
-                                        <button type="submit" class="btn btn-primary w-100 btn-lg">
-                                            <i class="bi bi-box-arrow-in-right me-2"></i>Bejelentkezés
-                                        </button>
-                                    </form>
-
-                                    <div class="text-center mt-3">
-                                        <a href="/register" class="text-muted">Nincs fiókja? Regisztráljon</a>
-                                    </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Parolă</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mb-3">Autentificare</button>
+        </form>
+        <p class="text-center text-muted mb-0">
+            Nu ai cont? <a href="/register">Înregistrare</a>
+        </p>
 </div>

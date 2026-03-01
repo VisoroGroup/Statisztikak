@@ -1,21 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const { ensureAuthenticated, ensureOrg } = require('../middleware/auth');
-const conditionsController = require('../controllers/conditionsController');
+const controller = require('../controllers/conditionsController');
 
-// All conditions routes require authentication
-router.use('/:orgId/statistics/conditions', ensureAuthenticated, ensureOrg);
-
-// List conditions
-router.get('/:orgId/statistics/conditions', conditionsController.index);
+// Conditions list
+router.get('/:orgId/statistics/conditions', ensureAuthenticated, ensureOrg, controller.index);
 
 // Create condition
-router.post('/:orgId/statistics/conditions', conditionsController.create);
+router.post('/:orgId/statistics/conditions', ensureAuthenticated, ensureOrg, controller.create);
 
 // Update condition
-router.post('/:orgId/statistics/conditions/:id/edit', conditionsController.update);
+router.post('/:orgId/statistics/conditions/:id/edit', ensureAuthenticated, ensureOrg, controller.update);
 
 // Delete condition
-router.post('/:orgId/statistics/conditions/:id/delete', conditionsController.remove);
+router.post('/:orgId/statistics/conditions/:id/delete', ensureAuthenticated, ensureOrg, controller.remove);
+
+// Write-up page (GET + POST)
+router.get('/:orgId/statistics/graph-condition/:id', ensureAuthenticated, ensureOrg, controller.writeup);
+router.post('/:orgId/statistics/graph-condition/:id', ensureAuthenticated, ensureOrg, controller.saveWriteup);
 
 module.exports = router;

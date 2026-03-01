@@ -95,6 +95,7 @@ const statisticsRoutes = require('./routes/statistics');
 const conditionsRoutes = require('./routes/conditions');
 const adminRoutes = require('./routes/admin');
 const exportRoutes = require('./routes/export');
+const battleplanRoutes = require('./routes/battleplans');
 const apiRoutes = require('./routes/api');
 
 app.use('/', authRoutes);
@@ -102,6 +103,7 @@ app.use('/', statisticsRoutes);
 app.use('/', conditionsRoutes);
 app.use('/', adminRoutes);
 app.use('/', exportRoutes);
+app.use('/', battleplanRoutes);
 app.use('/api', apiRoutes);
 
 // Root redirect
