@@ -17,6 +17,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="/<%= user.organizationId %>/statistics/overlay">
+                            <i class="bi bi-layers me-1"></i>Átfedés
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="/<%= user.organizationId %>/statistics/summary">
                             <i class="bi bi-clipboard-data me-1"></i>Összefoglalás
                         </a>
@@ -26,6 +31,34 @@
                             <i class="bi bi-speedometer2 me-1"></i>Állapotok
                         </a>
                     </li>
+
+                    <% if (user.role==='admin' ) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-gear me-1"></i>Admin
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark">
+                                <li><a class="dropdown-item" href="/<%= user.organizationId %>/admin/users">
+                                        <i class="bi bi-people me-2"></i>Felhasználók
+                                    </a></li>
+                                <li><a class="dropdown-item" href="/<%= user.organizationId %>/admin/groups">
+                                        <i class="bi bi-collection me-2"></i>Csoportok
+                                    </a></li>
+                                <li><a class="dropdown-item" href="/<%= user.organizationId %>/admin/audit">
+                                        <i class="bi bi-journal-text me-2"></i>Audit Napló
+                                    </a></li>
+                                <li>
+                                    <hr class="dropdown-divider">
+                                </li>
+                                <li><a class="dropdown-item" href="/<%= user.organizationId %>/admin/settings">
+                                        <i class="bi bi-building me-2"></i>Szervezet
+                                    </a></li>
+                                <li><a class="dropdown-item" href="/<%= user.organizationId %>/statistics/export-all">
+                                        <i class="bi bi-download me-2"></i>Összes exportálása (CSV)
+                                    </a></li>
+                            </ul>
+                        </li>
+                        <% } %>
                 </ul>
 
                 <ul class="navbar-nav">

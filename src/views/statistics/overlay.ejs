@@ -1,0 +1,128 @@
+<div class="mt-4 mb-4">
+    <h2><i class="bi bi-layers me-2"></i>Átfedéses Nézet</h2>
+    <p class="text-muted">Több statisztika összehasonlítása egy grafikonon.</p>
+
+    <%- include('../partials/flash') %>
+
+        <!-- Selection Form -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" action="/<%= orgId %>/statistics/overlay">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-4">
+                            <label class="form-label">Statisztikák kiválasztása</label>
+                            <select class="form-select" name="ids" id="overlaySelect" multiple size="6">
+                                <% statistics.forEach(s=> { %>
+                                    <option value="<%= s.id %>" <%=selectedIds.includes(s.id) ? 'selected' : '' %>><%=
+                                            s.title %>
+                                    </option>
+                                    <% }); %>
+                            </select>
+                            <small class="text-muted">Ctrl+click a többszörös kijelöléshez (max 10)</small>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Nézet</label>
+                            <select class="form-select" name="view">
+                                <option value="daily" <%=viewType==='daily' ? 'selected' : '' %>>Napi</option>
+                                <option value="weekly" <%=viewType==='weekly' ? 'selected' : '' %>>Heti</option>
+                                <option value="monthly" <%=viewType==='monthly' ? 'selected' : '' %>>Havi</option>
+                                <option value="quarterly" <%=viewType==='quarterly' ? 'selected' : '' %>>Negyedéves
+                                </option>
+                                <option value="yearly" <%=viewType==='yearly' ? 'selected' : '' %>>Éves</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Kezdő dátum</label>
+                            <input type="date" class="form-control" name="from" value="<%= dateFrom %>">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Záró dátum</label>
+                            <input type="date" class="form-control" name="to" value="<%= dateTo %>">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100" onclick="formatIds()">
+                                <i class="bi bi-arrow-repeat me-1"></i>Frissítés
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <% if (chartDatasets.length> 0) { %>
+            <div class="card">
+                <div class="card-body">
+                    <div id="overlayChart" style="min-height: 400px;"></div>
+                </div>
+            </div>
+            <% } else if (selectedIds.length> 0) { %>
+                <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Nincs adat a kiválasztott
+                    statisztikákhoz.</div>
+                <% } %>
+</div>
+
+<script>
+    // Format multi-select IDs for query string
+    function formatIds() {
+        const select = document.getElementById('overlaySelect');
+        const selected = Array.from(select.selectedOptions).map(o => o.value);
+        // Create a hidden input with comma-separated IDs
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'ids';
+        hidden.value = selected.join(',');
+
+        // Remove the multi-select from form submission
+        select.removeAttribute('name');
+        select.form.appendChild(hidden);
+    }
+
+  <% if (chartDatasets.length > 0) { %>
+        // Render overlay chart
+        document.addEventListener('DOMContentLoaded', () => {
+            const datasets = <% - JSON.stringify(chartDatasets) %>;
+
+            // Find all unique labels across datasets
+            const allLabels = [...new Set(datasets.flatMap(d => d.labels))].sort();
+
+            const series = datasets.map(ds => ({
+                name: ds.title,
+                data: allLabels.map(label => {
+                    const idx = ds.labels.indexOf(label);
+                    return idx >= 0 ? ds.values[idx] : null;
+                }),
+            }));
+
+            const options = {
+                chart: {
+                    type: 'line',
+                    height: 400,
+                    fontFamily: 'Inter, sans-serif',
+                    toolbar: { show: true },
+                    animations: { enabled: true, easing: 'easeinout', speed: 600 },
+                },
+                series,
+                colors: datasets.map(d => d.color),
+                stroke: { width: 3, curve: 'smooth' },
+                markers: { size: 4, hover: { sizeOffset: 3 } },
+                xaxis: {
+                    categories: allLabels,
+                    labels: { rotate: -45, style: { fontSize: '11px' } },
+                },
+                yaxis: {
+                    labels: {
+                        formatter: (val) => val !== null ? val.toLocaleString('hu-HU') : 'N/A',
+                    },
+                },
+                grid: { borderColor: '#e2e8f0', strokeDashArray: 4 },
+                tooltip: { shared: true, intersect: false, theme: 'dark' },
+                legend: { position: 'top', horizontalAlign: 'center', fontSize: '13px' },
+                dataLabels: { enabled: false },
+            };
+
+            const chart = new ApexCharts(document.getElementById('overlayChart'), options);
+            chart.render();
+        });
+  <% } %>
+</script>

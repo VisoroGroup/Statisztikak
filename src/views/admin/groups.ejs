@@ -1,0 +1,112 @@
+<div class="mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-collection me-2"></i>Csoportok kezelése</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newGroupModal">
+            <i class="bi bi-plus-lg me-1"></i>Új csoport
+        </button>
+    </div>
+
+    <%- include('../partials/flash') %>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Név</th>
+                                <th>Sorrend</th>
+                                <th>Statisztikák</th>
+                                <th class="text-end">Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% groups.forEach(g=> { %>
+                                <tr>
+                                    <td class="fw-bold">
+                                        <%= g.name %>
+                                    </td>
+                                    <td>
+                                        <%= g.displayOrder %>
+                                    </td>
+                                    <td><span class="badge bg-primary">
+                                            <%= g._count.assignments %> db
+                                        </span></td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary edit-group-btn me-1"
+                                            data-id="<%= g.id %>" data-name="<%= g.name %>"
+                                            data-order="<%= g.displayOrder %>">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form action="/<%= orgId %>/admin/groups/<%= g.id %>/delete" method="POST"
+                                            class="d-inline"
+                                            onsubmit="return confirm('Biztosan törli: <%= g.name %>?')">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"><i
+                                                    class="bi bi-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</div>
+
+<!-- New Group Modal -->
+<div class="modal fade" id="newGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/<%= orgId %>/admin/groups" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Új csoport</h5><button type="button"
+                        class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Név</label><input type="text" class="form-control"
+                            name="name" required></div>
+                    <div class="mb-3"><label class="form-label">Megjelenítési sorrend</label><input type="number"
+                            class="form-control" name="display_order" value="0"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Bezár</button><button type="submit"
+                        class="btn btn-primary">Létrehozás</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Group Modal -->
+<div class="modal fade" id="editGroupModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editGroupForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Csoport szerkesztése</h5><button
+                        type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Név</label><input type="text" class="form-control"
+                            name="name" id="editGroupName" required></div>
+                    <div class="mb-3"><label class="form-label">Megjelenítési sorrend</label><input type="number"
+                            class="form-control" name="display_order" id="editGroupOrder"></div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Bezár</button><button type="submit"
+                        class="btn btn-primary">Mentés</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.edit-group-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('editGroupForm').action = '/<%= orgId %>/admin/groups/' + btn.dataset.id + '/edit';
+            document.getElementById('editGroupName').value = btn.dataset.name;
+            document.getElementById('editGroupOrder').value = btn.dataset.order;
+            new bootstrap.Modal(document.getElementById('editGroupModal')).show();
+        });
+    });
+</script>

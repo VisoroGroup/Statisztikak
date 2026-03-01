@@ -1,5 +1,7 @@
 const prisma = require('../config/database');
 const statsService = require('../services/statisticsService');
+const { logAction } = require('../services/auditService');
+const { recalculateFormulas } = require('../services/formulaService');
 const { body, validationResult } = require('express-validator');
 
 // GET /:orgId/statistics - Main page with card grid
@@ -167,6 +169,7 @@ exports.detailAction = async (req, res) => {
                 },
             });
 
+            logAction(orgId, req.user.id, 'create', 'statistic_value', statId, { value: parsedValue, date: recordDate.toISOString() }, req.ip);
             req.flash('success', 'Érték sikeresen rögzítve.');
         } else if (form_type === 'quota') {
             const { quota_value, period_start, period_end } = req.body;
@@ -308,6 +311,7 @@ exports.create = async (req, res) => {
         }
 
         req.flash('success', 'Statisztika sikeresen létrehozva.');
+        logAction(orgId, req.user.id, 'create', 'statistic', statistic.id, { title: req.body.title }, req.ip);
         res.redirect(`/${orgId}/statistics/detail-graph/${statistic.id}`);
     } catch (err) {
         console.error('Create error:', err);
@@ -386,6 +390,7 @@ exports.updateSettings = async (req, res) => {
         }
 
         req.flash('success', 'Beállítások sikeresen mentve.');
+        logAction(orgId, req.user.id, 'update', 'statistic', statId, { title: req.body.title }, req.ip);
         res.redirect(`/${orgId}/statistics/detail-graph/${statId}`);
     } catch (err) {
         console.error('Update settings error:', err);
@@ -399,6 +404,7 @@ exports.deleteStatistic = async (req, res) => {
     try {
         const statId = parseInt(req.params.id);
         await prisma.statistic.delete({ where: { id: statId } });
+        logAction(req.orgId, req.user.id, 'delete', 'statistic', statId, null, req.ip);
         req.flash('success', 'Statisztika törölve.');
         res.redirect(`/${req.orgId}/statistics`);
     } catch (err) {
@@ -432,8 +438,10 @@ exports.summary = async (req, res) => {
 // POST /:orgId/statistics/summary - Save summary settings
 exports.saveSummary = async (req, res) => {
     try {
-        // Placeholder for formula recalculation
-        req.flash('success', 'Sikeres - Kérjük, hagyjon 1 percet, amíg az egyenletgrafikonok frissülnek.');
+        // Trigger formula recalculation
+        await recalculateFormulas(req.orgId);
+        logAction(req.orgId, req.user.id, 'recalculate', 'formula', null, null, req.ip);
+        req.flash('success', 'Egyenletgrafikonok sikeresen újraszámolva.');
         res.redirect(`/${req.orgId}/statistics/summary`);
     } catch (err) {
         console.error('Save summary error:', err);

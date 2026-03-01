@@ -19,6 +19,7 @@ model Organization {
   statistics         Statistic[]
   statisticValues    StatisticValue[]
   statisticConditions StatisticCondition[]
+  auditLogs          AuditLog[]
 
   @@map("organizations")
 }
@@ -44,6 +45,7 @@ model User {
   authoredValues StatisticValue[] @relation("ValueAuthor")
   createdQuotas  StatisticQuota[] @relation("QuotaCreator")
   conditions     StatisticCondition[]
+  auditLogs      AuditLog[]
 
   @@map("users")
 }
@@ -193,6 +195,23 @@ model StatisticCondition {
   statistic      Statistic?     @relation(fields: [statisticId], references: [id], onDelete: SetNull)
 
   @@map("statistic_conditions")
+}
+
+model AuditLog {
+  id             Int          @id @default(autoincrement())
+  organizationId BigInt       @map("organization_id")
+  userId         Int?         @map("user_id")
+  action         String       @db.VarChar(50)
+  entityType     String       @db.VarChar(50) @map("entity_type")
+  entityId       String?      @db.VarChar(50) @map("entity_id")
+  details        Json?
+  ipAddress      String?      @db.VarChar(45) @map("ip_address")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User?        @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
 }
 
 enum ConditionType {

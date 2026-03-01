@@ -1,0 +1,137 @@
+<div class="mt-4 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="bi bi-people me-2"></i>Felhasználók kezelése</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newUserModal">
+            <i class="bi bi-person-plus me-1"></i>Új felhasználó
+        </button>
+    </div>
+
+    <%- include('../partials/flash') %>
+
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Név</th>
+                                <th>Email</th>
+                                <th>Szerepkör</th>
+                                <th>Regisztráció</th>
+                                <th class="text-end">Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% users.forEach(u=> { %>
+                                <tr>
+                                    <td class="fw-bold">
+                                        <%= u.name %>
+                                    </td>
+                                    <td>
+                                        <%= u.email %>
+                                    </td>
+                                    <td>
+                                        <span class="badge <%= u.role === 'admin' ? 'bg-danger' : 'bg-primary' %>">
+                                            <%= u.role==='admin' ? 'Admin' : 'Felhasználó' %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <%= new Date(u.createdAt).toLocaleDateString('hu-HU') %>
+                                    </td>
+                                    <td class="text-end">
+                                        <button class="btn btn-sm btn-outline-primary edit-user-btn me-1"
+                                            data-id="<%= u.id %>" data-name="<%= u.name %>" data-email="<%= u.email %>"
+                                            data-role="<%= u.role %>">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <% if (u.id !==user.id) { %>
+                                            <form action="/<%= orgId %>/admin/users/<%= u.id %>/delete" method="POST"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Biztosan törli: <%= u.name %>?')">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger"><i
+                                                        class="bi bi-trash"></i></button>
+                                            </form>
+                                            <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+</div>
+
+<!-- New User Modal -->
+<div class="modal fade" id="newUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="/<%= orgId %>/admin/users" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-person-plus me-2"></i>Új felhasználó</h5><button
+                        type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Név</label><input type="text" class="form-control"
+                            name="name" required></div>
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control"
+                            name="email" required></div>
+                    <div class="mb-3"><label class="form-label">Jelszó</label><input type="password"
+                            class="form-control" name="password" required minlength="6"></div>
+                    <div class="mb-3"><label class="form-label">Szerepkör</label>
+                        <select class="form-select" name="role">
+                            <option value="user">Felhasználó</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Bezár</button><button type="submit"
+                        class="btn btn-primary">Létrehozás</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editUserForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil me-2"></i>Felhasználó szerkesztése</h5><button
+                        type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3"><label class="form-label">Név</label><input type="text" class="form-control"
+                            name="name" id="editUserName" required></div>
+                    <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control"
+                            name="email" id="editUserEmail" required></div>
+                    <div class="mb-3"><label class="form-label">Új jelszó (opcionális)</label><input type="password"
+                            class="form-control" name="password" placeholder="Hagyd üresen ha nem változtat"></div>
+                    <div class="mb-3"><label class="form-label">Szerepkör</label>
+                        <select class="form-select" name="role" id="editUserRole">
+                            <option value="user">Felhasználó</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Bezár</button><button type="submit"
+                        class="btn btn-primary">Mentés</button></div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.edit-user-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('editUserForm').action = '/<%= orgId %>/admin/users/' + btn.dataset.id + '/edit';
+            document.getElementById('editUserName').value = btn.dataset.name;
+            document.getElementById('editUserEmail').value = btn.dataset.email;
+            document.getElementById('editUserRole').value = btn.dataset.role;
+            new bootstrap.Modal(document.getElementById('editUserModal')).show();
+        });
+    });
+</script>
