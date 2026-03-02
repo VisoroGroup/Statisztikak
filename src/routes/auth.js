@@ -83,7 +83,7 @@ router.post('/register', [
         // Get default organization
         const org = await prisma.organization.findFirst();
         if (!org) {
-            req.flash('error', 'Nincs szervezet konfigurálva. Futtassa a seed-et.');
+            req.flash('error', 'Nu există organizație configurată. Rulați seed-ul.');
             return res.redirect('/register');
         }
 
@@ -105,11 +105,11 @@ router.post('/register', [
             },
         });
 
-        req.flash('success', 'Sikeres regisztráció! Most már bejelentkezhet.');
+        req.flash('success', 'Înregistrare reușită! Acum vă puteți autentifica.');
         res.redirect('/login');
     } catch (err) {
         console.error('Registration error:', err);
-        req.flash('error', 'Hiba történt a regisztráció során.');
+        req.flash('error', 'Eroare la înregistrare.');
         res.redirect('/register');
     }
 });
@@ -118,7 +118,7 @@ router.post('/register', [
 router.get('/logout', (req, res) => {
     req.logout((err) => {
         if (err) console.error(err);
-        req.flash('success', 'Sikeresen kijelentkezett.');
+        req.flash('success', 'V-ați deconectat cu succes.');
         res.redirect('/login');
     });
 });

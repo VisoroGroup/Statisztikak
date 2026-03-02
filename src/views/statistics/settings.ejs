@@ -1,11 +1,11 @@
 <div class="mt-4 mb-4">
     <a href="/<%= orgId %>/statistics<%= !isNew ? '/detail-graph/' + statistic.id : '' %>"
         class="btn btn-sm btn-outline-secondary mb-3">
-        <i class="bi bi-arrow-left me-1"></i>Vissza
+        <i class="bi bi-arrow-left me-1"></i>Înapoi
     </a>
 
     <h2>
-        <%= isNew ? 'Új Statisztika' : 'Beállítások — ' + statistic.title %>
+        <%= isNew ? 'Grafic nou' : 'Setări — ' + statistic.title %>
     </h2>
 
     <div class="card mt-3">
@@ -14,16 +14,16 @@
                 method="POST">
 
                 <!-- Basic Info -->
-                <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Alap adatok</h5>
+                <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Date de bază</h5>
 
                 <div class="row g-3">
                     <div class="col-md-8">
-                        <label class="form-label">Cím <span class="text-danger">*</span></label>
+                        <label class="form-label">Titlu <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" name="title"
                             value="<%= statistic ? statistic.title : '' %>" required minlength="3">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Beosztási sorrend</label>
+                        <label class="form-label">Ordine de afișare</label>
                         <input type="number" class="form-control" name="display_order"
                             value="<%= statistic ? statistic.displayOrder : 0 %>">
                     </div>
@@ -31,7 +31,7 @@
 
                 <div class="row g-3 mt-1">
                     <div class="col-12">
-                        <label class="form-label">Leírás</label>
+                        <label class="form-label">Descriere</label>
                         <textarea class="form-control" name="description"
                             rows="2"><%= statistic ? (statistic.description || '') : '' %></textarea>
                     </div>
@@ -39,21 +39,21 @@
 
                 <div class="row g-3 mt-1">
                     <div class="col-md-4">
-                        <label class="form-label">Aggregáció típusa</label>
+                        <label class="form-label">Tip de agregare</label>
                         <select class="form-select" name="aggregation_type">
                             <% ['daily','weekly','monthly','quarterly','yearly'].forEach(t=> { %>
                                 <option value="<%= t %>" <%=statistic && statistic.aggregationType===t ? 'selected' : ''
                                     %>>
-                                    <%= t==='daily' ? 'Napi' : t==='weekly' ? 'Heti' : t==='monthly' ? 'Havi' :
-                                        t==='quarterly' ? 'Negyedéves' : 'Éves' %>
+                                    <%= t==='daily' ? 'Zilnic' : t==='weekly' ? 'Săptămânal' : t==='monthly' ? 'Lunar' :
+                                        t==='quarterly' ? 'Trimestrial' : 'Anual' %>
                                 </option>
                                 <% }); %>
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Személy neve</label>
+                        <label class="form-label">Persoana responsabilă</label>
                         <select class="form-select" name="responsible_person_id">
-                            <option value="">— Nincs —</option>
+                            <option value="">— Niciuna —</option>
                             <% users.forEach(u=> { %>
                                 <option value="<%= u.id %>" <%=statistic && statistic.responsiblePersonId===u.id
                                     ? 'selected' : '' %>>
@@ -63,7 +63,7 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label">Mérési típus</label>
+                        <label class="form-label">Tip de măsurare</label>
                         <div class="mt-1">
                             <% ['currency','percentage','numeric'].forEach(t=> { %>
                                 <div class="form-check form-check-inline">
@@ -71,7 +71,7 @@
                                         value="<%= t %>" id="mt_<%= t %>" <%=(!statistic && t==='numeric' ) ||
                                         (statistic && statistic.measurementType===t) ? 'checked' : '' %>>
                                     <label class="form-check-label" for="mt_<%= t %>">
-                                        <%= t==='currency' ? 'Pénznem' : t==='percentage' ? 'Százalék' : 'Számozás' %>
+                                        <%= t==='currency' ? 'Valută' : t==='percentage' ? 'Procent' : 'Numeric' %>
                                     </label>
                                 </div>
                                 <% }); %>
@@ -82,7 +82,7 @@
                 <hr class="my-4">
 
                 <!-- Groups -->
-                <h5 class="mb-3"><i class="bi bi-collection me-2"></i>Csoportok</h5>
+                <h5 class="mb-3"><i class="bi bi-collection me-2"></i>Grupuri</h5>
                 <div class="row g-2">
                     <% groups.forEach(g=> { %>
                         <div class="col-auto">
@@ -101,28 +101,28 @@
                 <hr class="my-4">
 
                 <!-- Advanced Settings -->
-                <h5 class="mb-3"><i class="bi bi-sliders me-2"></i>Haladó beállítások</h5>
+                <h5 class="mb-3"><i class="bi bi-sliders me-2"></i>Setări avansate</h5>
 
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label">Életképesség határvonala</label>
+                        <label class="form-label">Prag de viabilitate</label>
                         <input type="number" step="0.01" class="form-control" name="viability_threshold"
                             value="<%= statistic && statistic.viabilityThreshold ? statistic.viabilityThreshold : '' %>"
-                            placeholder="Opcionális">
+                            placeholder="Opțional">
                     </div>
                     <div class="col-md-4">
                         <div class="form-check mt-4">
                             <input class="form-check-input" type="checkbox" name="is_inverted" id="isInverted"
                                 <%=statistic && statistic.isInverted ? 'checked' : '' %>>
-                            <label class="form-check-label" for="isInverted">Fordított grafikon (alacsonyabb =
-                                jobb)</label>
+                            <label class="form-check-label" for="isInverted">Grafic inversat (valoare mai mică =
+                                mai bun)</label>
                         </div>
                     </div>
                 </div>
 
                 <div class="row g-3 mt-1">
                     <div class="col-md-4">
-                        <label class="form-label">Tengely mód</label>
+                        <label class="form-label">Mod axă</label>
                         <div>
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="axis_mode" value="auto" id="axisAuto"
@@ -134,19 +134,19 @@
                                 <input class="form-check-input" type="radio" name="axis_mode" value="manual"
                                     id="axisManual" <%=statistic && statistic.axisMode==='manual' ? 'checked' : '' %>
                                 onchange="toggleAxisInputs()">
-                                <label class="form-check-label" for="axisManual">Egyéni</label>
+                                <label class="form-check-label" for="axisManual">Manual</label>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-4 axis-inputs"
                         style="<%= !statistic || statistic.axisMode !== 'manual' ? 'display:none' : '' %>">
-                        <label class="form-label">Tengely felső érték</label>
+                        <label class="form-label">Valoare maximă axă</label>
                         <input type="number" step="0.01" class="form-control" name="axis_max"
                             value="<%= statistic && statistic.axisMax ? statistic.axisMax : '' %>">
                     </div>
                     <div class="col-md-4 axis-inputs"
                         style="<%= !statistic || statistic.axisMode !== 'manual' ? 'display:none' : '' %>">
-                        <label class="form-label">Tengely alsó érték</label>
+                        <label class="form-label">Valoare minimă axă</label>
                         <input type="number" step="0.01" class="form-control" name="axis_min"
                             value="<%= statistic && statistic.axisMin ? statistic.axisMin : '' %>">
                     </div>
@@ -155,10 +155,10 @@
                 <hr class="my-4">
 
                 <!-- Work Days -->
-                <h5 class="mb-3"><i class="bi bi-calendar-week me-2"></i>Munkanapok</h5>
+                <h5 class="mb-3"><i class="bi bi-calendar-week me-2"></i>Zile lucrătoare</h5>
                 <div class="d-flex flex-wrap gap-3">
                     <% const
-                        dayLabels={mon:'Hétfő',tue:'Kedd',wed:'Szerda',thu:'Csütörtök',fri:'Péntek',sat:'Szombat',sun:'Vasárnap'};
+                        dayLabels={mon:'Luni',tue:'Marți',wed:'Miercuri',thu:'Joi',fri:'Vineri',sat:'Sâmbătă',sun:'Duminică'};
                         const defaultDays={mon:true,tue:true,wed:true,thu:true,fri:true,sat:false,sun:false}; const
                         workDays=statistic ? (typeof statistic.workDays==='string' ? JSON.parse(statistic.workDays) :
                         statistic.workDays) : defaultDays; %>
@@ -176,36 +176,35 @@
                 <hr class="my-4">
 
                 <!-- Graph Type -->
-                <h5 class="mb-3"><i class="bi bi-graph-up me-2"></i>Grafikon típusa</h5>
+                <h5 class="mb-3"><i class="bi bi-graph-up me-2"></i>Tip de grafic</h5>
                 <div class="row g-3">
                     <div class="col-md-4">
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="graph_type" value="normal" id="gtNormal"
                                 <%=!statistic || statistic.graphType==='normal' ? 'checked' : '' %>
                             onchange="toggleFormula()">
-                            <label class="form-check-label" for="gtNormal">Normál grafikon</label>
+                            <label class="form-check-label" for="gtNormal">Grafic normal</label>
                         </div>
                         <div class="form-check mt-2">
                             <input class="form-check-input" type="radio" name="graph_type" value="formula"
                                 id="gtFormula" <%=statistic && statistic.graphType==='formula' ? 'checked' : '' %>
                             onchange="toggleFormula()">
-                            <label class="form-check-label" for="gtFormula">Egyenlet-grafikon (formula)</label>
+                            <label class="form-check-label" for="gtFormula">Grafic de tip ecuație (formulă)</label>
                         </div>
                     </div>
                     <div class="col-md-8 formula-input"
                         style="<%= !statistic || statistic.graphType !== 'formula' ? 'display:none' : '' %>">
-                        <label class="form-label">Formula</label>
+                        <label class="form-label">Formulă</label>
                         <textarea class="form-control" name="formula" rows="2"
-                            placeholder="Matematikai képlet..."><%= statistic && statistic.formula ? statistic.formula : '' %></textarea>
+                            placeholder="Formulă matematică..."><%= statistic && statistic.formula ? statistic.formula : '' %></textarea>
                     </div>
                 </div>
 
                 <% if (!isNew && statistic) { %>
                     <hr class="my-4">
-                    <h5 class="mb-3"><i class="bi bi-key me-2"></i>API Azonosító</h5>
+                    <h5 class="mb-3"><i class="bi bi-key me-2"></i>Identificator API</h5>
                     <div class="input-group" style="max-width: 400px;">
-                        <input type="text" class="form-control" value="<%= statistic.apiKey || 'Nincs generálva' %>"
-                            readonly>
+                        <input type="text" class="form-control" value="<%= statistic.apiKey || 'Negenerat' %>" readonly>
                         <span class="input-group-text"><i class="bi bi-clipboard"></i></span>
                     </div>
                     <% } %>
@@ -215,11 +214,11 @@
                         <div class="d-flex gap-2">
                             <button type="submit" class="btn btn-primary btn-lg">
                                 <i class="bi bi-check-lg me-1"></i>
-                                <%= isNew ? 'Létrehozás' : 'Mentés' %>
+                                <%= isNew ? 'Creare' : 'Salvare' %>
                             </button>
                             <% if (!isNew) { %>
                                 <button type="button" class="btn btn-outline-danger btn-lg" onclick="deleteStatistic()">
-                                    <i class="bi bi-trash me-1"></i>Törlés
+                                    <i class="bi bi-trash me-1"></i>Ștergere
                                 </button>
                                 <% } %>
                         </div>
@@ -249,7 +248,7 @@
     }
 
     function deleteStatistic() {
-        if (confirm('Biztosan törli ezt a statisztikát? Ez a művelet nem visszavonható!')) {
+        if (confirm('Sigur doriți să ștergeți acest grafic? Această acțiune este ireversibilă!')) {
             document.getElementById('deleteForm').submit();
         }
     }

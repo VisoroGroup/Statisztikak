@@ -49,7 +49,7 @@ exports.index = async (req, res) => {
         });
     } catch (err) {
         console.error('Index error:', err);
-        req.flash('error', 'Hiba a statisztikák betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea graficelor.');
         res.redirect('/');
     }
 };
@@ -92,7 +92,7 @@ exports.detail = async (req, res) => {
         });
 
         if (!statistic) {
-            req.flash('error', 'Statisztika nem található.');
+            req.flash('error', 'Graficul nu a fost găsit.');
             return res.redirect(`/${orgId}/statistics`);
         }
 
@@ -117,7 +117,7 @@ exports.detail = async (req, res) => {
         });
     } catch (err) {
         console.error('Detail error:', err);
-        req.flash('error', 'Hiba a statisztika betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea graficului.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 };
@@ -141,7 +141,7 @@ exports.detailAction = async (req, res) => {
             const { value, for_date, when_weekend } = req.body;
             const parsedValue = parseFloat(value);
             if (isNaN(parsedValue)) {
-                req.flash('error', 'Érvénytelen érték.');
+                req.flash('error', 'Valoare invalidă.');
                 return res.redirect(`/${orgId}/statistics/detail-graph/${statId}`);
             }
 
@@ -170,7 +170,7 @@ exports.detailAction = async (req, res) => {
             });
 
             logAction(orgId, req.user.id, 'create', 'statistic_value', statId, { value: parsedValue, date: recordDate.toISOString() }, req.ip);
-            req.flash('success', 'Érték sikeresen rögzítve.');
+            req.flash('success', 'Valoare înregistrată cu succes.');
         } else if (form_type === 'quota') {
             const { quota_value, period_start, period_end } = req.body;
             await prisma.statisticQuota.create({
@@ -182,7 +182,7 @@ exports.detailAction = async (req, res) => {
                     createdById: req.user.id,
                 },
             });
-            req.flash('success', 'Célérték sikeresen beállítva.');
+            req.flash('success', 'Cotă setată cu succes.');
         } else if (form_type === 'notes') {
             const { note_text } = req.body;
             // Store note as a value with today's date and note field
@@ -199,13 +199,13 @@ exports.detailAction = async (req, res) => {
                     data: { note: note_text },
                 });
             }
-            req.flash('success', 'Megjegyzés mentve.');
+            req.flash('success', 'Notiță salvată.');
         }
 
         res.redirect(`/${orgId}/statistics/detail-graph/${statId}`);
     } catch (err) {
         console.error('Detail action error:', err);
-        req.flash('error', 'Hiba történt a művelet közben.');
+        req.flash('error', 'Eroare la efectuarea operațiunii.');
         res.redirect(`/${req.orgId}/statistics/detail-graph/${req.params.id}`);
     }
 };
@@ -281,7 +281,7 @@ exports.createForm = async (req, res) => {
         });
     } catch (err) {
         console.error('Create form error:', err);
-        req.flash('error', 'Hiba a form betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea formularului.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 };
@@ -310,12 +310,12 @@ exports.create = async (req, res) => {
             });
         }
 
-        req.flash('success', 'Statisztika sikeresen létrehozva.');
+        req.flash('success', 'Grafic creat cu succes.');
         logAction(orgId, req.user.id, 'create', 'statistic', statistic.id, { title: req.body.title }, req.ip);
         res.redirect(`/${orgId}/statistics/detail-graph/${statistic.id}`);
     } catch (err) {
         console.error('Create error:', err);
-        req.flash('error', 'Hiba a statisztika létrehozása közben.');
+        req.flash('error', 'Eroare la crearea graficului.');
         res.redirect(`/${req.orgId}/statistics/create-graph`);
     }
 };
@@ -334,7 +334,7 @@ exports.settingsForm = async (req, res) => {
         });
 
         if (!statistic) {
-            req.flash('error', 'Statisztika nem található.');
+            req.flash('error', 'Graficul nu a fost găsit.');
             return res.redirect(`/${orgId}/statistics`);
         }
 
@@ -357,7 +357,7 @@ exports.settingsForm = async (req, res) => {
         });
     } catch (err) {
         console.error('Settings form error:', err);
-        req.flash('error', 'Hiba a beállítások betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea setărilor.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 };
@@ -389,12 +389,12 @@ exports.updateSettings = async (req, res) => {
             });
         }
 
-        req.flash('success', 'Beállítások sikeresen mentve.');
+        req.flash('success', 'Setări salvate cu succes.');
         logAction(orgId, req.user.id, 'update', 'statistic', statId, { title: req.body.title }, req.ip);
         res.redirect(`/${orgId}/statistics/detail-graph/${statId}`);
     } catch (err) {
         console.error('Update settings error:', err);
-        req.flash('error', 'Hiba a beállítások mentése közben.');
+        req.flash('error', 'Eroare la salvarea setărilor.');
         res.redirect(`/${req.orgId}/statistics/update-graph/${req.params.id}`);
     }
 };
@@ -405,11 +405,11 @@ exports.deleteStatistic = async (req, res) => {
         const statId = parseInt(req.params.id);
         await prisma.statistic.delete({ where: { id: statId } });
         logAction(req.orgId, req.user.id, 'delete', 'statistic', statId, null, req.ip);
-        req.flash('success', 'Statisztika törölve.');
+        req.flash('success', 'Grafic șters.');
         res.redirect(`/${req.orgId}/statistics`);
     } catch (err) {
         console.error('Delete error:', err);
-        req.flash('error', 'Hiba a törlés közben.');
+        req.flash('error', 'Eroare la ștergere.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 };
@@ -424,13 +424,13 @@ exports.summary = async (req, res) => {
         });
 
         res.render('statistics/summary', {
-            title: 'Összefoglalás',
+            title: 'Sumar',
             groups,
             orgId: orgId.toString(),
         });
     } catch (err) {
         console.error('Summary error:', err);
-        req.flash('error', 'Hiba az összefoglalás betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea sumarului.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 };
@@ -441,11 +441,11 @@ exports.saveSummary = async (req, res) => {
         // Trigger formula recalculation
         await recalculateFormulas(req.orgId);
         logAction(req.orgId, req.user.id, 'recalculate', 'formula', null, null, req.ip);
-        req.flash('success', 'Egyenletgrafikonok sikeresen újraszámolva.');
+        req.flash('success', 'Graficele de tip formulă au fost recalculate cu succes.');
         res.redirect(`/${req.orgId}/statistics/summary`);
     } catch (err) {
         console.error('Save summary error:', err);
-        req.flash('error', 'Hiba a mentés közben.');
+        req.flash('error', 'Eroare la salvare.');
         res.redirect(`/${req.orgId}/statistics/summary`);
     }
 };

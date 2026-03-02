@@ -4,12 +4,12 @@
         <div class="col-auto">
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" id="showValuesToggle" checked>
-                <label class="form-check-label" for="showValuesToggle">Értékek Megjelenítés</label>
+                <label class="form-check-label" for="showValuesToggle">Afișare valori</label>
             </div>
         </div>
         <div class="col-auto">
             <select class="form-select form-select-sm" id="groupFilter" onchange="filterByGroup(this.value)">
-                <option value="all" <%=currentGroup==='all' ? 'selected' : '' %>>Mindet</option>
+                <option value="all" <%=currentGroup==='all' ? 'selected' : '' %>>Toate</option>
                 <% groups.forEach(g=> { %>
                     <option value="<%= g.name %>" <%=currentGroup===g.name ? 'selected' : '' %>><%= g.name %>
                     </option>
@@ -19,11 +19,11 @@
         <div class="col-auto">
             <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
-                    <i class="bi bi-three-dots-vertical"></i> Teendő
+                    <i class="bi bi-three-dots-vertical"></i> Acțiuni
                 </button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="/<%= orgId %>/statistics/create-graph">
-                            <i class="bi bi-plus-circle me-2"></i>Új statisztika
+                            <i class="bi bi-plus-circle me-2"></i>Grafic nou
                         </a></li>
                 </ul>
             </div>
@@ -32,7 +32,7 @@
             <form class="d-flex" method="GET" action="/<%= orgId %>/statistics">
                 <input type="hidden" name="group" value="<%= currentGroup %>">
                 <input type="text" class="form-control form-control-sm me-2" name="search" value="<%= search %>"
-                    placeholder="Keresés cím szerint...">
+                    placeholder="Căutare după titlu...">
                 <button type="submit" class="btn btn-sm btn-primary">
                     <i class="bi bi-search"></i>
                 </button>
@@ -45,10 +45,10 @@
 <% if (statistics.length===0) { %>
     <div class="empty-state">
         <i class="bi bi-graph-up"></i>
-        <h3>Nincs statisztika</h3>
-        <p class="text-muted">Hozzon létre az első statisztikát a "Teendő" menüből.</p>
+        <h3>Nu există grafice</h3>
+        <p class="text-muted">Creați primul grafic din meniul „Acțiuni".</p>
         <a href="/<%= orgId %>/statistics/create-graph" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-2"></i>Új statisztika
+            <i class="bi bi-plus-circle me-2"></i>Grafic nou
         </a>
     </div>
     <% } else { %>
@@ -70,7 +70,7 @@
                                     <% } %>
                             </div>
                             <button class="btn btn-sm btn-outline-primary add-value-btn" data-stat-id="<%= stat.id %>"
-                                data-stat-title="<%= stat.title %>" title="Érték bevitele">
+                                data-stat-title="<%= stat.title %>" title="Adăugare valoare">
                                 <i class="bi bi-plus-lg"></i>
                             </button>
                         </div>
@@ -94,40 +94,40 @@
                         <form id="addValueForm" method="POST">
                             <input type="hidden" name="form_type" value="add_value">
                             <div class="modal-header">
-                                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Érték bevitele</h5>
+                                <h5 class="modal-title"><i class="bi bi-plus-circle me-2"></i>Adăugare valoare</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
                             <div class="modal-body">
                                 <p class="text-muted" id="addValueStatTitle"></p>
                                 <div class="mb-3">
-                                    <label for="valueInput" class="form-label">Érték</label>
+                                    <label for="valueInput" class="form-label">Valoare</label>
                                     <input type="number" step="0.01" class="form-control" id="valueInput" name="value"
                                         required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="dateInput" class="form-label">Dátum</label>
+                                    <label for="dateInput" class="form-label">Data</label>
                                     <input type="date" class="form-control" id="dateInput" name="for_date" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label">Ha nem munkanap:</label>
+                                    <label class="form-label">Dacă nu este zi lucrătoare:</label>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="when_weekend" value="before"
                                             id="weekendBefore">
-                                        <label class="form-check-label" for="weekendBefore">Előtt 07:00AM (előző
-                                            munkanapra)</label>
+                                        <label class="form-check-label" for="weekendBefore">Înainte de 07:00 (ziua
+                                            lucrătoare anterioară)</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="when_weekend" value="after"
                                             id="weekendAfter" checked>
-                                        <label class="form-check-label" for="weekendAfter">Után 07:00AM (következő
-                                            munkanapra)</label>
+                                        <label class="form-check-label" for="weekendAfter">După 07:00 (ziua
+                                            lucrătoare următoare)</label>
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezár</button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Închide</button>
                                 <button type="submit" class="btn btn-primary"><i
-                                        class="bi bi-check-lg me-1"></i>Bevitel</button>
+                                        class="bi bi-check-lg me-1"></i>Salvare</button>
                             </div>
                         </form>
                     </div>

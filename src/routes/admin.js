@@ -18,13 +18,13 @@ router.get('/:orgId/admin/users', async (req, res) => {
             orderBy: { createdAt: 'desc' },
         });
         res.render('admin/users', {
-            title: 'Felhasználók kezelése',
+            title: 'Administrare utilizatori',
             users,
             orgId: req.orgId.toString(),
         });
     } catch (err) {
         console.error('Admin users error:', err);
-        req.flash('error', 'Hiba a felhasználók betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea utilizatorilor.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 });
@@ -47,7 +47,7 @@ router.post('/:orgId/admin/users', [
 
         const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });
         if (existing) {
-            req.flash('error', 'Ez az email cím már regisztrálva van.');
+            req.flash('error', 'Această adresă de email este deja înregistrată.');
             return res.redirect(`/${req.orgId}/admin/users`);
         }
 
@@ -64,11 +64,11 @@ router.post('/:orgId/admin/users', [
             },
         });
 
-        req.flash('success', `Felhasználó "${name}" sikeresen létrehozva.`);
+        req.flash('success', `Utilizator "${name}" creat cu succes.`);
         res.redirect(`/${req.orgId}/admin/users`);
     } catch (err) {
         console.error('Create user error:', err);
-        req.flash('error', 'Hiba a felhasználó létrehozása közben.');
+        req.flash('error', 'Eroare la crearea utilizatorului.');
         res.redirect(`/${req.orgId}/admin/users`);
     }
 });
@@ -91,11 +91,11 @@ router.post('/:orgId/admin/users/:id/edit', async (req, res) => {
             data,
         });
 
-        req.flash('success', 'Felhasználó frissítve.');
+        req.flash('success', 'Utilizator actualizat.');
         res.redirect(`/${req.orgId}/admin/users`);
     } catch (err) {
         console.error('Update user error:', err);
-        req.flash('error', 'Hiba a frissítés közben.');
+        req.flash('error', 'Eroare la actualizare.');
         res.redirect(`/${req.orgId}/admin/users`);
     }
 });
@@ -106,7 +106,7 @@ router.post('/:orgId/admin/users/:id/delete', async (req, res) => {
         const id = parseInt(req.params.id);
 
         if (id === req.user.id) {
-            req.flash('error', 'Nem törölheti saját magát.');
+            req.flash('error', 'Nu vă puteți șterge propriul cont.');
             return res.redirect(`/${req.orgId}/admin/users`);
         }
 
@@ -114,11 +114,11 @@ router.post('/:orgId/admin/users/:id/delete', async (req, res) => {
             where: { id, organizationId: req.orgId },
         });
 
-        req.flash('success', 'Felhasználó törölve.');
+        req.flash('success', 'Utilizator șters.');
         res.redirect(`/${req.orgId}/admin/users`);
     } catch (err) {
         console.error('Delete user error:', err);
-        req.flash('error', 'Hiba a törlés közben.');
+        req.flash('error', 'Eroare la ștergere.');
         res.redirect(`/${req.orgId}/admin/users`);
     }
 });
@@ -134,13 +134,13 @@ router.get('/:orgId/admin/groups', async (req, res) => {
             orderBy: { displayOrder: 'asc' },
         });
         res.render('admin/groups', {
-            title: 'Csoportok kezelése',
+            title: 'Administrare grupuri',
             groups,
             orgId: req.orgId.toString(),
         });
     } catch (err) {
         console.error('Admin groups error:', err);
-        req.flash('error', 'Hiba a csoportok betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea grupurilor.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 });
@@ -156,11 +156,11 @@ router.post('/:orgId/admin/groups', async (req, res) => {
                 organizationId: req.orgId,
             },
         });
-        req.flash('success', `Csoport "${name}" létrehozva.`);
+        req.flash('success', `Grup "${name}" creat cu succes.`);
         res.redirect(`/${req.orgId}/admin/groups`);
     } catch (err) {
         console.error('Create group error:', err);
-        req.flash('error', 'Hiba a csoport létrehozása közben.');
+        req.flash('error', 'Eroare la crearea grupului.');
         res.redirect(`/${req.orgId}/admin/groups`);
     }
 });
@@ -174,11 +174,11 @@ router.post('/:orgId/admin/groups/:id/edit', async (req, res) => {
             where: { id, organizationId: req.orgId },
             data: { name: name.trim(), displayOrder: parseInt(display_order) || 0 },
         });
-        req.flash('success', 'Csoport frissítve.');
+        req.flash('success', 'Grup actualizat.');
         res.redirect(`/${req.orgId}/admin/groups`);
     } catch (err) {
         console.error('Update group error:', err);
-        req.flash('error', 'Hiba a frissítés közben.');
+        req.flash('error', 'Eroare la actualizare.');
         res.redirect(`/${req.orgId}/admin/groups`);
     }
 });
@@ -190,11 +190,11 @@ router.post('/:orgId/admin/groups/:id/delete', async (req, res) => {
         await prisma.statisticGroup.deleteMany({
             where: { id, organizationId: req.orgId },
         });
-        req.flash('success', 'Csoport törölve.');
+        req.flash('success', 'Grup șters.');
         res.redirect(`/${req.orgId}/admin/groups`);
     } catch (err) {
         console.error('Delete group error:', err);
-        req.flash('error', 'Hiba a törlés közben.');
+        req.flash('error', 'Eroare la ștergere.');
         res.redirect(`/${req.orgId}/admin/groups`);
     }
 });
@@ -220,7 +220,7 @@ router.get('/:orgId/admin/audit', async (req, res) => {
         ]);
 
         res.render('admin/audit', {
-            title: 'Audit Napló',
+            title: 'Jurnal Audit',
             logs,
             orgId: req.orgId.toString(),
             page,
@@ -229,7 +229,7 @@ router.get('/:orgId/admin/audit', async (req, res) => {
         });
     } catch (err) {
         console.error('Audit log error:', err);
-        req.flash('error', 'Hiba az audit napló betöltése közben.');
+        req.flash('error', 'Eroare la încărcarea jurnalului.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 });
@@ -243,13 +243,13 @@ router.get('/:orgId/admin/settings', async (req, res) => {
             where: { id: req.orgId },
         });
         res.render('admin/settings', {
-            title: 'Szervezet beállítások',
+            title: 'Setări organizație',
             org,
             orgId: req.orgId.toString(),
         });
     } catch (err) {
         console.error('Org settings error:', err);
-        req.flash('error', 'Hiba.');
+        req.flash('error', 'Eroare.');
         res.redirect(`/${req.orgId}/statistics`);
     }
 });
@@ -262,11 +262,11 @@ router.post('/:orgId/admin/settings', async (req, res) => {
             where: { id: req.orgId },
             data: { name: name.trim() },
         });
-        req.flash('success', 'Szervezet beállítások mentve.');
+        req.flash('success', 'Setările organizației au fost salvate.');
         res.redirect(`/${req.orgId}/admin/settings`);
     } catch (err) {
         console.error('Update org error:', err);
-        req.flash('error', 'Hiba a mentés közben.');
+        req.flash('error', 'Eroare la salvare.');
         res.redirect(`/${req.orgId}/admin/settings`);
     }
 });

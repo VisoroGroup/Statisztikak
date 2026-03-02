@@ -38,7 +38,7 @@ router.get('/:orgId/statistics/overlay', ensureAuthenticated, ensureOrg, async (
         }
 
         res.render('statistics/overlay', {
-            title: 'Átfedéses Nézet',
+            title: 'Suprapunere',
             statistics,
             selectedIds,
             chartDatasets,

@@ -1,6 +1,6 @@
 <div class="mt-4 mb-4">
-    <h2><i class="bi bi-layers me-2"></i>Átfedéses Nézet</h2>
-    <p class="text-muted">Több statisztika összehasonlítása egy grafikonon.</p>
+    <h2><i class="bi bi-layers me-2"></i>Suprapunere</h2>
+    <p class="text-muted">Compararea mai multor grafice pe un singur grafic.</p>
 
     <%- include('../partials/flash') %>
 
@@ -10,38 +10,38 @@
                 <form method="GET" action="/<%= orgId %>/statistics/overlay">
                     <div class="row g-3 align-items-end">
                         <div class="col-md-4">
-                            <label class="form-label">Statisztikák kiválasztása</label>
+                            <label class="form-label">Selectare grafice</label>
                             <select class="form-select" name="ids" id="overlaySelect" multiple size="6">
                                 <% statistics.forEach(s=> { %>
-                                    <option value="<%= s.id %>" <%=selectedIds.includes(s.id) ? 'selected' : '' %>><%=
+                                    <option value="<%= s.id %>" <%=selectedIds.includes(s.id) ? 'selected' : '' %>><<%=
                                             s.title %>
                                     </option>
                                     <% }); %>
                             </select>
-                            <small class="text-muted">Ctrl+click a többszörös kijelöléshez (max 10)</small>
+                            <small class="text-muted">Ctrl+click pentru selecție multiplă (max 10)</small>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Nézet</label>
+                            <label class="form-label">Vizualizare</label>
                             <select class="form-select" name="view">
-                                <option value="daily" <%=viewType==='daily' ? 'selected' : '' %>>Napi</option>
-                                <option value="weekly" <%=viewType==='weekly' ? 'selected' : '' %>>Heti</option>
-                                <option value="monthly" <%=viewType==='monthly' ? 'selected' : '' %>>Havi</option>
-                                <option value="quarterly" <%=viewType==='quarterly' ? 'selected' : '' %>>Negyedéves
+                                <option value="daily" <%=viewType==='daily' ? 'selected' : '' %>>Zilnic</option>
+                                <option value="weekly" <%=viewType==='weekly' ? 'selected' : '' %>>Săptămânal</option>
+                                <option value="monthly" <%=viewType==='monthly' ? 'selected' : '' %>>Lunar</option>
+                                <option value="quarterly" <%=viewType==='quarterly' ? 'selected' : '' %>>Trimestrial
                                 </option>
-                                <option value="yearly" <%=viewType==='yearly' ? 'selected' : '' %>>Éves</option>
+                                <option value="yearly" <%=viewType==='yearly' ? 'selected' : '' %>>Anual</option>
                             </select>
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Kezdő dátum</label>
+                            <label class="form-label">Data de început</label>
                             <input type="date" class="form-control" name="from" value="<%= dateFrom %>">
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label">Záró dátum</label>
+                            <label class="form-label">Data de sfârșit</label>
                             <input type="date" class="form-control" name="to" value="<%= dateTo %>">
                         </div>
                         <div class="col-md-2">
                             <button type="submit" class="btn btn-primary w-100" onclick="formatIds()">
-                                <i class="bi bi-arrow-repeat me-1"></i>Frissítés
+                                <i class="bi bi-arrow-repeat me-1"></i>Actualizare
                             </button>
                         </div>
                     </div>
@@ -57,8 +57,8 @@
                 </div>
             </div>
             <% } else if (selectedIds.length> 0) { %>
-                <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Nincs adat a kiválasztott
-                    statisztikákhoz.</div>
+                <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>Nu există date pentru graficele
+                    selectate.</div>
                 <% } %>
 </div>
 
@@ -112,7 +112,7 @@
                 },
                 yaxis: {
                     labels: {
-                        formatter: (val) => val !== null ? val.toLocaleString('hu-HU') : 'N/A',
+                        formatter: (val) => val !== null ? val.toLocaleString('ro-RO') : 'N/A',
                     },
                 },
                 grid: { borderColor: '#e2e8f0', strokeDashArray: 4 },
