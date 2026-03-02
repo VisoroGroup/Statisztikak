@@ -17,10 +17,10 @@ const CONDITION_LABELS = {
 const CONDITION_COLORS = {
     putere: '#6d28d9',
     schimbare_putere: '#7c3aed',
-    abundenta: '#2563eb',
-    normal: '#16a34a',
+    abundenta: '#16a34a',
+    normal: '#2563eb',
     urgenta: '#f59e0b',
-    pericol_conducere: '#ea580c',
+    pericol_conducere: '#dc2626',
     pericol_personal: '#dc2626',
     non_existenta: '#991b1b',
     non_existenta_extinsa: '#450a0a',
