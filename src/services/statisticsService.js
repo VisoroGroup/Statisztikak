@@ -56,7 +56,7 @@ function isWorkday(date, workDays) {
 /**
  * Resolve the actual record date for when_weekend logic
  * @param {Date} forDate - The date the value is being entered for
- * @param {string} whenWeekend - 'before' (előtt 07:00AM) or 'after' (után 07:00AM)
+ * @param {string} whenWeekend - 'before' or 'after'
  * @param {object} workDays - Work days config
  */
 function resolveRecordDate(forDate, whenWeekend, workDays) {
@@ -78,7 +78,7 @@ function aggregateValues(values, viewType) {
         return values.map(v => ({
             key: formatDateKey(v.recordDate, 'daily'),
             value: parseFloat(v.value),
-            authorName: v.author ? v.author.name : 'Rendszer',
+            authorName: v.author ? v.author.name : 'Sistem',
             authorType: v.authorType,
             date: v.recordDate,
             id: v.id ? v.id.toString() : null,
@@ -98,7 +98,7 @@ function aggregateValues(values, viewType) {
     return Object.entries(grouped).map(([key, data]) => ({
         key,
         value: data.sum,
-        authorName: 'Rendszer',
+        authorName: 'Sistem',
         authorType: 'system',
         date: data.date,
         id: null,
@@ -194,6 +194,72 @@ function calculateTrendLine(dataPoints) {
 }
 
 /**
+ * Hubbard Y-axis scaling algorithm
+ * yMin = floor(min(last 6 months) * 0.9) rounded to nice number
+ * yMax = ceil(max(last 3 months) * 1.3) rounded to nice number
+ * stepSize = (yMax - yMin) / 10 rounded to nice unit
+ */
+function calculateHubbardScale(allValues) {
+    if (!allValues || allValues.length < 2) return null;
+
+    const now = new Date();
+    const sixMonthsAgo = new Date(now);
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const threeMonthsAgo = new Date(now);
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+    // Get values for each period
+    const last6m = allValues.filter(v => new Date(v.date || v.recordDate) >= sixMonthsAgo);
+    const last3m = allValues.filter(v => new Date(v.date || v.recordDate) >= threeMonthsAgo);
+
+    // Use all data if not enough history
+    const minPool = last6m.length >= 2 ? last6m : allValues;
+    const maxPool = last3m.length >= 2 ? last3m : allValues;
+
+    const vals = v => parseFloat(v.value || v);
+    const minVal = Math.min(...minPool.map(vals));
+    const maxVal = Math.max(...maxPool.map(vals));
+
+    if (minVal === maxVal) return null; // flat line, let auto handle it
+
+    // Round to nice number
+    function niceFloor(val, factor) {
+        return Math.floor(val / factor) * factor;
+    }
+    function niceCeil(val, factor) {
+        return Math.ceil(val / factor) * factor;
+    }
+    function getNiceFactor(range) {
+        if (range <= 10) return 1;
+        if (range <= 50) return 5;
+        if (range <= 100) return 10;
+        if (range <= 500) return 50;
+        if (range <= 1000) return 100;
+        if (range <= 5000) return 500;
+        if (range <= 10000) return 1000;
+        if (range <= 50000) return 5000;
+        if (range <= 100000) return 10000;
+        return 50000;
+    }
+
+    const rawMin = minVal * 0.9;
+    const rawMax = maxVal * 1.3;
+    const rawRange = rawMax - rawMin;
+    const factor = getNiceFactor(rawRange);
+
+    const yMin = Math.max(0, niceFloor(rawMin, factor));
+    const yMax = niceCeil(rawMax, factor);
+    const range = yMax - yMin;
+
+    // Step size: aim for ~10 ticks, rounded to nice unit
+    let rawStep = range / 10;
+    const stepFactor = getNiceFactor(rawStep * 2);
+    const stepSize = Math.max(1, niceCeil(rawStep, stepFactor > 0 ? Math.max(1, stepFactor / 2) : 1));
+
+    return { yMin, yMax, stepSize };
+}
+
+/**
  * Format number based on measurement type
  */
 function formatValue(value, measurementType) {
@@ -201,11 +267,11 @@ function formatValue(value, measurementType) {
     const num = parseFloat(value);
     switch (measurementType) {
         case 'currency':
-            return num.toLocaleString('hu-HU', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            return num.toLocaleString('ro-RO', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         case 'percentage':
             return `${num.toFixed(2)}%`;
         default:
-            return num.toLocaleString('hu-HU');
+            return num.toLocaleString('ro-RO');
     }
 }
 
@@ -247,11 +313,15 @@ async function getChartData(statisticId, viewType = 'daily', dateFrom = null, da
     // Sort aggregated by date for chart
     const sortedForChart = [...aggregated].sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // Hubbard Y-axis scaling
+    const hubbardScale = calculateHubbardScale(sortedForChart);
+
     return {
         labels: sortedForChart.map(v => v.key),
         values: sortedForChart.map(v => v.value),
         trend: trendLine,
         tableData,
+        hubbardScale,
     };
 }
 
@@ -262,6 +332,7 @@ module.exports = {
     aggregateValues,
     buildValuesTable,
     calculateTrendLine,
+    calculateHubbardScale,
     formatValue,
     generateApiKey,
     getChartData,

@@ -194,13 +194,46 @@
 </div>
 
 <script>
+    const orgId = '<%= orgId %>';
+
+    // Edit condition buttons
     document.querySelectorAll('.edit-cond-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-            document.getElementById('editCondForm').action = '/<%= orgId %>/statistics/conditions/' + btn.dataset.id + '/edit';
+            document.getElementById('editCondForm').action = '/' + orgId + '/statistics/conditions/' + btn.dataset.id + '/edit';
             document.getElementById('editCondDate').value = btn.dataset.date;
             document.getElementById('editCondType').value = btn.dataset.type;
             document.getElementById('editCondStat').value = btn.dataset.stat;
             new bootstrap.Modal(document.getElementById('editConditionModal')).show();
         });
     });
+
+    // Auto-suggest condition when statistic is selected
+    const newStatSelect = document.querySelector('#newConditionModal select[name="statistic_id"]');
+    const newCondTypeSelect = document.querySelector('#newConditionModal select[name="condition_type"]');
+    const suggestBadge = document.createElement('span');
+    suggestBadge.className = 'badge bg-info ms-2';
+    suggestBadge.style.display = 'none';
+    suggestBadge.id = 'autoSuggestBadge';
+    newCondTypeSelect.parentNode.appendChild(suggestBadge);
+
+    if (newStatSelect) {
+        newStatSelect.addEventListener('change', async () => {
+            const statId = newStatSelect.value;
+            suggestBadge.style.display = 'none';
+            if (!statId) return;
+
+            try {
+                const res = await fetch('/' + orgId + '/statistics/conditions/suggest/' + statId);
+                const data = await res.json();
+                if (data.success && data.suggested) {
+                    // Pre-select the suggested condition
+                    newCondTypeSelect.value = data.suggested;
+                    suggestBadge.textContent = '(sugestie automată: ' + data.message + ')';
+                    suggestBadge.style.display = 'inline';
+                }
+            } catch (err) {
+                console.error('Auto-suggest error:', err);
+            }
+        });
+    }
 </script>

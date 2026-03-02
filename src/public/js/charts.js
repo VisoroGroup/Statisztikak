@@ -1,5 +1,6 @@
 /**
  * Stats Visoro - ApexCharts Integration
+ * Implements Hubbard's statistics graph rules
  */
 
 const ChartManager = {
@@ -27,7 +28,7 @@ const ChartManager = {
             },
         },
         stroke: {
-            width: [3, 2],
+            width: [2, 2],
             curve: 'smooth',
             dashArray: [0, 5],
         },
@@ -47,7 +48,7 @@ const ChartManager = {
             shared: true,
             intersect: false,
             y: {
-                formatter: (val) => val !== null ? val.toLocaleString('hu-HU') : 'N/A',
+                formatter: (val) => val !== null ? val.toLocaleString('ro-RO') : 'N/A',
             },
         },
         legend: {
@@ -62,7 +63,7 @@ const ChartManager = {
     /**
      * Create a mini chart for the main page card
      */
-    createMiniChart(containerId, labels, values, trend) {
+    createMiniChart(containerId, labels, values, trend, hubbardScale) {
         const el = document.getElementById(containerId);
         if (!el) return;
 
@@ -70,8 +71,27 @@ const ChartManager = {
         el.innerHTML = '';
 
         if (!values || values.length === 0) {
-            el.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>Nincs adat</div>';
+            el.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>Nu există date</div>';
             return;
+        }
+
+        // Hubbard Y-axis settings
+        const yaxisConfig = {
+            labels: {
+                style: { fontSize: '10px', colors: '#94a3b8' },
+                formatter: (val) => {
+                    if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
+                    if (val >= 1000) return (val / 1000).toFixed(0) + 'k';
+                    return val.toFixed(0);
+                },
+            },
+        };
+
+        // Apply Hubbard scale if available
+        if (hubbardScale) {
+            yaxisConfig.min = hubbardScale.yMin;
+            yaxisConfig.max = hubbardScale.yMax;
+            yaxisConfig.tickAmount = Math.round((hubbardScale.yMax - hubbardScale.yMin) / hubbardScale.stepSize);
         }
 
         const options = {
@@ -83,7 +103,7 @@ const ChartManager = {
                 toolbar: { show: false },
             },
             series: [
-                { name: 'Érték', data: values },
+                { name: 'Valoare', data: values },
                 { name: 'Trend', data: trend || [] },
             ],
             xaxis: {
@@ -97,16 +117,7 @@ const ChartManager = {
                 axisBorder: { show: false },
                 axisTicks: { show: false },
             },
-            yaxis: {
-                labels: {
-                    style: { fontSize: '10px', colors: '#94a3b8' },
-                    formatter: (val) => {
-                        if (val >= 1000000) return (val / 1000000).toFixed(1) + 'M';
-                        if (val >= 1000) return (val / 1000).toFixed(0) + 'k';
-                        return val.toFixed(0);
-                    },
-                },
-            },
+            yaxis: yaxisConfig,
             legend: { show: false },
             dataLabels: { enabled: false },
         };
@@ -117,7 +128,18 @@ const ChartManager = {
     },
 
     /**
-     * Create the full detail chart
+     * Get measurement unit label
+     */
+    getUnitLabel(measurementType) {
+        switch (measurementType) {
+            case 'currency': return 'RON';
+            case 'percentage': return '%';
+            default: return '';
+        }
+    },
+
+    /**
+     * Create the full detail chart with Hubbard scaling + raster label
      */
     createDetailChart(containerId, labels, values, trend, options = {}) {
         const el = document.getElementById(containerId);
@@ -126,13 +148,13 @@ const ChartManager = {
         el.innerHTML = '';
 
         if (!values || values.length === 0) {
-            el.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-inbox me-2"></i>Nincs adat. Vigyen be értéket a "+" gombbal.</div>';
+            el.innerHTML = '<div class="text-center text-muted py-5"><i class="bi bi-inbox me-2"></i>Nu există date. Adăugați o valoare cu butonul „+".</div>';
             return;
         }
 
         const series = [
-            { name: 'Aktuális értékek', data: values },
-            { name: 'Trend vonal', data: trend || [] },
+            { name: 'Valori actuale', data: values },
+            { name: 'Linie de trend', data: trend || [] },
         ];
 
         const annotations = {};
@@ -142,7 +164,7 @@ const ChartManager = {
                 borderColor: options.isInverted ? '#dc2626' : '#16a34a',
                 strokeDashArray: 4,
                 label: {
-                    text: 'Életképesség határvonal',
+                    text: 'Prag de viabilitate',
                     borderColor: 'transparent',
                     style: {
                         background: options.isInverted ? '#fee2e2' : '#dcfce7',
@@ -153,6 +175,37 @@ const ChartManager = {
             }];
         }
 
+        // Hubbard Y-axis configuration
+        const yaxisConfig = {
+            labels: {
+                style: { fontSize: '11px', colors: '#64748b' },
+                formatter: (val) => {
+                    if (val === null || val === undefined) return 'N/A';
+                    if (options.measurementType === 'percentage') return val.toFixed(2) + '%';
+                    return val.toLocaleString('ro-RO');
+                },
+            },
+        };
+
+        // Priority: manual axis > Hubbard scale > auto
+        if (options.axisMode === 'manual' && options.axisMin !== undefined) {
+            yaxisConfig.min = options.axisMin;
+            yaxisConfig.max = options.axisMax;
+        } else if (options.hubbardScale) {
+            yaxisConfig.min = options.hubbardScale.yMin;
+            yaxisConfig.max = options.hubbardScale.yMax;
+            yaxisConfig.tickAmount = Math.round(
+                (options.hubbardScale.yMax - options.hubbardScale.yMin) / options.hubbardScale.stepSize
+            );
+        }
+
+        // Build raster label (scale annotation)
+        let rasterLabel = null;
+        if (options.hubbardScale && options.hubbardScale.stepSize) {
+            const unit = this.getUnitLabel(options.measurementType);
+            rasterLabel = `1 raster = ${options.hubbardScale.stepSize.toLocaleString('ro-RO')}${unit ? ' ' + unit : ''}`;
+        }
+
         const chartOptions = {
             ...this.defaultOptions,
             chart: {
@@ -161,6 +214,17 @@ const ChartManager = {
             },
             series,
             annotations,
+            // Raster label as subtitle
+            subtitle: rasterLabel ? {
+                text: rasterLabel,
+                align: 'right',
+                offsetY: 0,
+                style: {
+                    fontSize: '11px',
+                    color: '#888',
+                    fontWeight: 'normal',
+                },
+            } : undefined,
             xaxis: {
                 categories: labels,
                 labels: {
@@ -169,18 +233,7 @@ const ChartManager = {
                     style: { fontSize: '11px', colors: '#64748b' },
                 },
             },
-            yaxis: {
-                labels: {
-                    style: { fontSize: '11px', colors: '#64748b' },
-                    formatter: (val) => {
-                        if (val === null || val === undefined) return 'N/A';
-                        if (options.measurementType === 'percentage') return val.toFixed(2) + '%';
-                        return val.toLocaleString('hu-HU');
-                    },
-                },
-                min: options.axisMin !== undefined ? options.axisMin : undefined,
-                max: options.axisMax !== undefined ? options.axisMax : undefined,
-            },
+            yaxis: yaxisConfig,
             dataLabels: {
                 enabled: options.showValues !== false,
                 enabledOnSeries: [0],
@@ -230,7 +283,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(result => {
                 if (result.success) {
                     Object.entries(result.data).forEach(([statId, data]) => {
-                        ChartManager.createMiniChart('chart-' + statId, data.labels, data.values, data.trend);
+                        ChartManager.createMiniChart(
+                            'chart-' + statId,
+                            data.labels,
+                            data.values,
+                            data.trend,
+                            data.hubbardScale || null
+                        );
                     });
                 }
             })
@@ -238,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Failed to load graph data:', err);
                 statisticIds.forEach(id => {
                     const el = document.getElementById('chart-' + id);
-                    if (el) el.innerHTML = '<div class="text-center text-muted py-3">Hiba az adatok betöltése közben</div>';
+                    if (el) el.innerHTML = '<div class="text-center text-muted py-3">Eroare la încărcarea datelor</div>';
                 });
             });
 
@@ -260,6 +319,10 @@ document.addEventListener('DOMContentLoaded', () => {
             isInverted: typeof isInverted !== 'undefined' ? isInverted : false,
             measurementType: typeof measurementType !== 'undefined' ? measurementType : 'numeric',
             showValues: true,
+            hubbardScale: typeof hubbardScale !== 'undefined' ? hubbardScale : null,
+            axisMode: typeof axisMode !== 'undefined' ? axisMode : 'auto',
+            axisMin: typeof axisMin !== 'undefined' ? axisMin : undefined,
+            axisMax: typeof axisMax !== 'undefined' ? axisMax : undefined,
         });
 
         // Detail values toggle

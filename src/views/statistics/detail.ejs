@@ -237,6 +237,10 @@
     const viabilityThreshold = <%= statistic.viabilityThreshold ?statistic.viabilityThreshold: 'null' %>;
     const isInverted = <%= statistic.isInverted %>;
     const measurementType = '<%= statistic.measurementType %>';
+    const hubbardScale = <% - JSON.stringify(chartData.hubbardScale || null) %>;
+    const axisMode = '<%= statistic.axisMode || "auto" %>';
+    const axisMin = <%= statistic.axisMin ?statistic.axisMin: 'undefined' %>;
+    const axisMax = <%= statistic.axisMax ?statistic.axisMax: 'undefined' %>;
 
     // Set today's date
     document.querySelectorAll('input[type="date"]').forEach(el => {

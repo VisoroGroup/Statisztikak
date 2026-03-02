@@ -72,7 +72,7 @@ exports.pageGraphData = async (req, res) => {
         res.json({ success: true, data: graphData });
     } catch (err) {
         console.error('Graph data error:', err);
-        res.status(500).json({ success: false, error: 'Hiba az adatok betöltése közben.' });
+        res.status(500).json({ success: false, error: 'Eroare la încărcarea datelor.' });
     }
 };
 
