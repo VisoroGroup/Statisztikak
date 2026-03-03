@@ -162,7 +162,8 @@ src/
 │   ├── statisticsController.js     # Statisztika CRUD + értékbevitel + audit log integráció
 │   └── conditionsController.js     # Állapotok CRUD + Write-Up + print mód
 ├── services/
-│   ├── statisticsService.js        # Számítások (aggregáció, change%, running total)
+│   ├── statisticsService.js        # Számítások (aggregáció, change%, running total, Hubbard skála)
+│   ├── conditionSuggestionService.js # Auto-javaslat állapothoz (slope algoritmus + Putere)
 │   ├── formulaService.js           # Formula parser + értékelő ({id} hivatkozások)
 │   └── auditService.js             # logAction() — non-blocking audit bejegyzés
 ├── views/
@@ -181,7 +182,7 @@ src/
 │   │   ├── settings.ejs            # Statisztika beállítások
 │   │   ├── summary.ejs             # Összefoglalás
 │   │   ├── overlay.ejs             # Átfedéses nézet
-│   │   ├── conditions.ejs          # Stări de funcționare lista
+│   │   ├── conditions.ejs          # Stări de funcționare lista + auto-suggest
 │   │   └── writeup.ejs             # Formula Write-Up (lépések + válaszok + print)
 │   ├── admin/
 │   │   ├── users.ejs               # Utilizatori CRUD
@@ -194,7 +195,7 @@ src/
 └── public/
     ├── css/style.css               # Egyedi stílusok + @media print
     ├── js/
-    │   ├── charts.js               # ApexCharts integráció
+    │   ├── charts.js               # ApexCharts + Hubbard Y-axis + raster label
     │   └── statistics.js           # Általános UI funkciók
     └── img/
         ├── logo.png                # Visoro Group logó
@@ -210,6 +211,53 @@ prisma/
     ├── 20260301165000_add_audit_logs/ # Audit log tábla
     └── 20260301190000_writeup_battleplan/ # Write-up + battleplan táblák + enum migráció
 ```
+
+---
+
+## Hubbard statisztika szabályok (v3 dokumentum)
+
+### Dinamikus Y-tengely skála
+A grafikon Y-tengelye NEM 0-tól indul. Algoritmus (`calculateHubbardScale()` in `statisticsService.js`):
+- `yMin = floor(min(utolsó 6 hónap) × 0.9)` → kerekítve szép számra
+- `yMax = ceil(max(utolsó 3 hónap) × 1.3)` → kerekítve szép számra
+- `stepSize = (yMax - yMin) / 10` → kerekítve szép egységre
+- Ha nincs elég adat → az összes rendelkezésre álló adatot használja
+- Ha manuális tengely beállítás van → az felülírja a Hubbard skálát
+
+### Raster felirat
+`"1 raster = [stepSize] [egység]"` megjelenik a grafikon jobb felső sarkában (ApexCharts subtitle, 11px, szürke).
+
+### Auto-javaslat állapothoz (slope algoritmus)
+`conditionSuggestionService.js` — Amikor kiválasztasz egy grafikont az "Stare nouă" modálban:
+1. AJAX hívás: `GET /:orgId/statistics/conditions/suggest/:statId`
+2. Az utolsó 4–7 adatpont slope-ja kiszámolódik: `(utolsó − első) / (hetek × átlag)`
+3. Javasolt állapot:
+
+| Slope | Állapot |
+|-------|---------|
+| ≤ −0.5 | Non-Existență |
+| −0.5 – −0.1 | Pericol de Conducere |
+| −0.1 – +0.1 | Urgență |
+| +0.1 – +0.4 | Normal |
+| > +0.4 | Abundență |
+| Külön szabály | Putere |
+
+4. **Putere** külön: utolsó 4+ hét mind a 6 hónapos átlag felett + Normal szintű slope
+5. Min. 3 adatpont szükséges, különben nincs javaslat
+
+### Állapot színek
+
+| Állapot | Szín | Kód |
+|---------|------|-----|
+| Putere | 🟣 Lila | `#6d28d9` |
+| Schimbare de Putere | 🟣 Lila | `#7c3aed` |
+| Abundență (Bőség) | 🟢 Zöld | `#16a34a` |
+| Normal | 🔵 Kék | `#2563eb` |
+| Urgență (Válság) | 🟠 Narancssárga | `#f59e0b` |
+| Pericol de Conducere | 🔴 Piros | `#dc2626` |
+| Pericol Personal | 🔴 Piros | `#dc2626` |
+| Non-Existență | 🔴 Sötét piros | `#991b1b` |
+| Non-Existență Extinsă | ⬛ Fekete-piros | `#450a0a` |
 
 ---
 
@@ -297,6 +345,7 @@ npm run dev
 | POST | `/:orgId/statistics/conditions` | Új állapot |
 | POST | `/:orgId/statistics/conditions/:id/edit` | Szerkesztés |
 | POST | `/:orgId/statistics/conditions/:id/delete` | Törlés |
+| GET | `/:orgId/statistics/conditions/suggest/:statId` | Auto-javaslat (AJAX JSON) |
 | GET | `/:orgId/statistics/graph-condition/:id` | Write-Up oldal |
 | POST | `/:orgId/statistics/graph-condition/:id` | Write-Up mentés |
 | GET | `/:orgId/statistics/graph-condition/:id?print=yes` | Write-Up nyomtatás |
@@ -354,3 +403,32 @@ npm run dev
 A rendszer az `app.makh.org` magyar nyelvű statisztikai rendszer alapján épült, teljesen új implementációval, román nyelvű UI-val. A fő specifikáció a `MAKH_Statisztika_Specifikacio.docx` fájlban van, kiegészítő dokumentumok:
 - `MAKH_Supplement_WriteUp_PDF.docx` — Write-Up funkció + Hubbard lépések
 - `MAKH_Supplement_v2_WriteUp_Roman.docx` — Román fordítás + bővített lépések
+- `MAKH_Supplement_v3_HubbardStatRules.docx` — Hubbard grafikon szabályok (Y-tengely, slope, állapot-javaslat)
+
+---
+
+## Beszélgetés napló (Changelog)
+
+### 2026-03-01 — Alap rendszer felépítés
+- Teljes projekt létrehozás (Node.js + Express + Prisma + EJS + Bootstrap 5)
+- Logo és favicon generálás
+- Statisztikák CRUD, értékbevitel, grafikon (ApexCharts)
+- Admin panel (felhasználók, csoportok, audit, szervezet)
+- CSV export/import, overlay nézet, összefoglalás
+- Stări de funcționare (9 Hubbard szint, CRUD)
+- Write-Up rendszer (45 lépés, battleplan csatolás, print mód)
+- Railway deploy (auto-deploy GitHub push)
+
+### 2026-03-02 — Teljes román fordítás
+- 5 nézet (index, detail, summary, settings, overlay) teljes román fordítás
+- Flash üzenetek (admin, auth, statisticsController, conditionsController, battleplans)
+- Locale: `hu-HU` → `ro-RO` mindenhol
+- `Rendszer` → `Sistem`
+
+### 2026-03-02 — Hubbard statisztika szabályok (v3 doksi)
+- Dinamikus Y-tengely algoritmus (`calculateHubbardScale()`)
+- Raster felirat a grafikon sarkában
+- Auto-javaslat állapothoz (`conditionSuggestionService.js` + slope algoritmus)
+- Putere (Hatalom) külön multi-hét detektálás
+- `charts.js` teljes átírás (román szövegek + Hubbard integráció)
+- Állapot színek javítás (Pericol=piros, Urgență=narancs, Normal=kék, Abundență=zöld)
